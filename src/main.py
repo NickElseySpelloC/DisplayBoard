@@ -1,0 +1,194 @@
+"""Main initialisation module for the DisplayBoard app."""
+
+# Check that Python version is >= 3.13, else exit with error.
+import argparse
+import os
+import signal
+import sys
+from pathlib import Path
+from threading import Event
+
+from sc_utility import SCCommon, SCConfigManager, SCLogger
+
+from config_schemas import ConfigSchema
+from controller import AppController
+from local_enumerations import CONFIG_FILE
+from thread_manager import RestartPolicy, ThreadManager
+from webapp import create_asgi_app, serve_asgi_blocking
+
+
+def parse_command_line_args() -> dict[str, str | None]:
+    """Parse and validate command line arguments.
+
+    Returns:
+        dict: Dictionary containing parsed arguments with keys:
+            - 'config_file': Path to configuration file (always present)
+            - 'homedir': Project home directory (for logging purposes, may be None)
+
+    Exits:
+        Exits with code 1 if arguments are invalid.
+    """
+    parser = argparse.ArgumentParser(
+        description="AppController - advanced display board",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python3 src/main.py
+  python3 src/main.py --config /path/to/config.yaml
+  python3 src/main.py --homedir /opt/powercontroller --config config.yaml
+        """
+    )
+
+    parser.add_argument(
+        "--homedir",
+        type=str,
+        metavar="PATH",
+        help="Specify the project home directory",
+    )
+
+    parser.add_argument(
+        "--config",
+        type=str,
+        metavar="FILE",
+        help=f"Path to configuration file (default: {CONFIG_FILE})",
+    )
+
+    args = parser.parse_args()
+
+    # Determine the base directory for resolving relative paths
+    if args.homedir:
+        homedir = Path(args.homedir)
+        if not homedir.exists():
+            print(f"ERROR: Specified homedir does not exist: {args.homedir}", file=sys.stderr)
+            sys.exit(1)
+        if not homedir.is_dir():
+            print(f"ERROR: Specified homedir is not a directory: {args.homedir}", file=sys.stderr)
+            sys.exit(1)
+        base_dir = homedir.resolve()
+
+        # Set the project root environment variable for use by SC_Utility and other components
+        os.environ["SC_UTILITY_PROJECT_ROOT"] = str(base_dir)
+    else:
+        base_dir = Path(SCCommon.get_project_root())
+
+    # Determine the config file path
+    if args.config:
+        config_path = Path(args.config)
+        # If relative path, resolve it relative to base_dir
+        if not config_path.is_absolute():
+            config_path = base_dir / config_path
+        config_file = str(config_path.resolve())
+
+        # Validate that the config file exists
+        if not Path(config_file).exists():
+            print(f"ERROR: Configuration file does not exist: {config_file}", file=sys.stderr)
+            sys.exit(1)
+        if not Path(config_file).is_file():
+            print(f"ERROR: Configuration path is not a file: {config_file}", file=sys.stderr)
+            sys.exit(1)
+    else:
+        config_file = CONFIG_FILE
+
+    return {
+        "config_file": config_file,
+        "homedir": str(base_dir) if args.homedir else None,
+    }
+
+
+def main():  # noqa: PLR0915
+    """Main entry point for the DisplayBoard app."""
+    wake_event = Event()    # Wakes the main controller loop from a timed sleep
+    stop_event = Event()    # Use to signal the main controller loop that the app is exiting
+
+    if sys.version_info < (3, 13):   # noqa: UP036
+        print(f"ERROR: Python 3.13 or higher is required. You are running {sys.version}", file=sys.stderr)
+        sys.exit(1)
+
+    # Parse command line arguments
+    cmd_args = parse_command_line_args()
+
+    # Install SIGINT handler early
+    def handle_sigint(_sig, _frame):
+        stop_event.set()
+        wake_event.set()
+    signal.signal(signal.SIGINT, handle_sigint)
+
+    # Get our default schema, validation schema, and placeholders.
+    schemas = ConfigSchema()
+
+    # Initialize the SC_ConfigManager class
+    try:
+        config_file = cmd_args["config_file"]
+        assert isinstance(config_file, str), "config_file must be a string"
+        config = SCConfigManager(
+            config_file=config_file,
+            validation_schema=schemas.validation
+        )
+    except RuntimeError as e:
+        print(f"Configuration file error: {e}", file=sys.stderr)
+        return
+
+    # Initialize the SC_Logger class
+    try:
+        logger = SCLogger(config.get_logger_settings())
+        # Setup email
+        logger.register_email_settings(config.get_email_settings())
+    except (RuntimeError, TypeError, ValueError) as e:
+        print(f"Logger initialisation error: {e}", file=sys.stderr)
+        return
+    else:
+        logger.log_message("", "summary")
+        logger.log_message("", "summary")
+        logger.log_message(f"DisplayBoard application starting using configuration file: {cmd_args['config_file']}", "summary")
+
+    # Now create instances of the main worked classes
+    controller = None
+    asgi_app = None
+    try:
+        # Create an instance of the main AppController class which orchestrates the power control
+        controller = AppController(config, logger, wake_event)
+
+        asgi_app, web_notifier = create_asgi_app(controller, config, logger)
+        controller.set_webapp_notifier(web_notifier.notify)
+
+    except (RuntimeError, TypeError) as e:
+        logger.log_fatal_error(f"Fatal error at startup: {e}")
+        return
+
+    # Now start the thread manager and create our worker threads
+    tm = ThreadManager(logger, global_stop=stop_event)
+
+    # Manage the controller loop as a thread too
+    tm.add(
+        name="controller",
+        target=controller.run,
+        kwargs={"stop_event": stop_event},
+        restart=RestartPolicy(mode="never"),
+    )
+
+    # Manage the ASGI webapp as a blocking worker in its own managed thread
+    tm.add(
+        name="webapp",
+        target=serve_asgi_blocking,
+        args=(asgi_app, config, logger, stop_event),
+        restart=RestartPolicy(mode="on_crash", max_restarts=3, backoff_seconds=2.0),
+    )
+
+    tm.start_all()
+    # (SIGINT handler already installed; remove later duplicate)
+    try:
+        while not stop_event.is_set():
+            if tm.any_crashed():
+                logger.log_fatal_error("A managed thread crashed. Initiating shutdown.", report_stack=False)
+                stop_event.set()
+                wake_event.set()
+                break
+            stop_event.wait(timeout=1.0)
+    finally:
+        tm.stop_all()
+        tm.join_all(timeout_per_thread=10.0)
+        logger.log_message("AppController application stopped.", "summary")
+
+
+if __name__ == "__main__":
+    main()

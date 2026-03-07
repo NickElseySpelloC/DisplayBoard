@@ -1,7 +1,30 @@
 [project]
 name = "displayboard"
 version = "0.1.0"
-description = "Add your description here"
+description = "Display one of more boards on a client browser"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+service_name="displayboard"
+launch_path="src/main.py"
+dependencies = [
+    "fastapi>=0.135.1",
+    "jinja2>=3.1.6",
+    "pre-commit>=4.5.1",
+    "python-dotenv>=1.2.2",
+    "sc-utility>=2.5.5",
+    "uvicorn>=0.41.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[dev.env.sync]
+remote="~/Library/CloudStorage/Dropbox/Development/dev_setup/app_config/DisplayBoard"
+patterns = [
+    ".env",
+    "config.yaml",
+    "logs/*",
+]
