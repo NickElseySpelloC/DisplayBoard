@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "WebFetch(domain:docs.google.com)",
-      "WebFetch(domain:doc-0c-9k-docstext.googleusercontent.com)"
+      "WebFetch(domain:doc-0c-9k-docstext.googleusercontent.com)",
+      "WebFetch(domain:nickelseyspelloc.github.io)",
+      "Bash(.venv/bin/python:*)"
     ]
   }
 }

@@ -1,6 +1,5 @@
 """The AppController class that orchestrates the application."""
 import contextlib
-import json  # noqa: F401
 import queue
 import time
 from collections.abc import Callable
@@ -13,6 +12,7 @@ from sc_utility import (
     SCLogger,
 )
 
+from data_manager import DataManager
 from local_enumerations import TRIM_LOGFILE_INTERVAL, Command
 
 if TYPE_CHECKING:
@@ -56,6 +56,30 @@ class AppController:
 
         self._initialise(startup_mode=True)
 
+        # Create data manager — must come after _initialise() so poll_interval is set
+        self._data_manager = DataManager(
+            config=config,
+            logger=logger,
+            notify_force=lambda: self.signal_data_update(force=True),
+            notify_normal=lambda: self.signal_data_update(force=False),
+        )
+
+    def get_data_thread_specs(self) -> list[dict]:
+        """Return thread specs for all data topic modules (for registration with ThreadManager)."""
+        return self._data_manager.get_thread_specs()
+
+    def signal_data_update(self, *, force: bool = False) -> None:
+        """Called by data topic threads when new data is available.
+
+        Args:
+            force: If True, push a WS snapshot immediately (bypasses throttle).
+                   Use for rapid-push topics like datetime.
+                   If False, the push is throttled to poll_interval.
+        """
+        self._maybe_notify_webapp(force=force)
+        if not force:
+            self.wake_event.set()
+
     def set_webapp_notifier(self, notify: Callable[[], None] | None) -> None:
         """Register a callback invoked when the webapp should push a new snapshot."""
         self._webapp_notify = notify
@@ -71,34 +95,25 @@ class AppController:
         self.wake_event.set()
 
     def get_webapp_data(self) -> dict:
-        """Returns a dict object with some data.
+        """Assemble and return the full state snapshot for the webapp.
 
-        Warning: This function is a placeholder only.
+        Called from the ASGI thread (via asyncio.to_thread) and from the
+        broadcast worker. Thread-safe: each topic module protects its own data.
 
         Returns:
-            dict: The snapshot.
+            dict: Snapshot containing global metadata plus all topic data.
         """
         loop_count = 0
         while self._have_pending_commands() and loop_count < 10:
-            time.sleep(0.1)  # Small delay to let the commands be processed
+            time.sleep(0.1)
             loop_count += 1
 
-        # Now build the snapshot
-        global_data = {
+        snapshot = self._data_manager.get_snapshot()
+        snapshot["global"] = {
             "AppLabel": self.app_label,
             "RefreshInterval": self.web_refresh_interval,
         }
-
-        other_data = {
-            "Hello": "World",
-        }
-
-        return_dict = {
-            "global": global_data,
-            "other": other_data,
-        }
-
-        return return_dict
+        return snapshot
 
     def run(self, stop_event: Event):
         """The main loop of the controller.
@@ -148,7 +163,7 @@ class AppController:
         Args:
             startup_mode (bool): If True, we're doing the initial startup initialisation. If False, we're doing a reinitialisation due to a config change.
         """
-        self.poll_interval = int(self.config.get("General", "PollingInterval", default=30) or 30)  # pyright: ignore[reportArgumentType]
+        self.poll_interval = int(self.config.get("General", "PollingIntervalSec", default=30) or 30)  # pyright: ignore[reportArgumentType]
         self.app_label = self.config.get("General", "Label", default="AppController")
         self.web_refresh_interval = self.config.get("Website", "PageAutoRefreshSec", default=30)
 

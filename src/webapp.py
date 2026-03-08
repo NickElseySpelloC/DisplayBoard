@@ -13,6 +13,8 @@ import asyncio
 import contextlib
 import json
 import os
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -127,8 +129,6 @@ def _configure_app_state(
     app.state.config = config
     app.state.logger = logger
     app.state.templates = templates
-    app.state.update_queue = asyncio.Queue(maxsize=100)
-    app.state.broadcast_task = None
 
 
 def _register_routes(app: FastAPI, controller: AppController, config: SCConfigManager, logger: SCLogger, templates: Jinja2Templates, manager: ConnectionManager, notifier: WebAppNotifier) -> None:
@@ -143,13 +143,27 @@ def _register_routes(app: FastAPI, controller: AppController, config: SCConfigMa
             logger.log_message("No web output data available yet", "warning")
             return HTMLResponse("no output data available yet", status_code=503)
 
-        # TO DO: This is a placeholder only. Need to return the requested board from the /templates folder
+        # Determine which board to serve.
+        # ?board=<index> selects by zero-based position in DisplayBoards.Boards list.
+        boards: list = config.get("DisplayBoards", "Boards", default=[]) or []
+        try:
+            board_index = int(request.query_params.get("board", 0))
+        except (ValueError, TypeError):
+            board_index = 0
+        board_index = max(0, min(board_index, len(boards) - 1)) if boards else 0
+
+        board_cfg = boards[board_index] if boards else {}
+        template_file = board_cfg.get("Template", "board1.html")
+        board_name = board_cfg.get("Name", f"Board {board_index + 1}")
+
         return templates.TemplateResponse(
-            "index.html",
+            template_file,
             {
                 "request": request,
                 "global_data": snapshot.get("global", {}),
-                "other": snapshot.get("other", {}),
+                "board_name": board_name,
+                "board_index": board_index,
+                "board_count": len(boards),
             },
         )
 
@@ -193,45 +207,42 @@ def create_asgi_app(controller: AppController, config: SCConfigManager, logger: 
     notifier = WebAppNotifier()
     manager = ConnectionManager()
 
-    app = FastAPI()
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
+        loop = asyncio.get_running_loop()
+        update_queue: asyncio.Queue[None] = asyncio.Queue(maxsize=100)
+        notifier.bind(loop, update_queue)
+
+        async def _broadcast_worker() -> None:
+            try:
+                while True:
+                    await update_queue.get()
+                    # Coalesce bursts into a single snapshot
+                    while True:
+                        try:
+                            update_queue.get_nowait()
+                        except asyncio.QueueEmpty:
+                            break
+                    snapshot = await asyncio.to_thread(controller.get_webapp_data)
+                    await manager.broadcast_json({"type": "state_update", "state": snapshot})
+            except asyncio.CancelledError:
+                return
+
+        broadcast_task = loop.create_task(_broadcast_worker())
+        try:
+            yield
+        finally:
+            broadcast_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await broadcast_task
+
+    app = FastAPI(lifespan=lifespan)
 
     # Serve static assets at /static
     app.mount("/static", StaticFiles(directory=str(repo_root / "static")), name="static")
 
     _configure_app_state(app, controller, config, logger, templates, notifier, manager)
     _register_routes(app, controller, config, logger, templates, manager, notifier)
-
-    @app.on_event("startup")
-    def _startup() -> None:
-        loop = asyncio.get_running_loop()
-        notifier.bind(loop, app.state.update_queue)
-
-        async def _broadcast_worker() -> None:
-            try:
-                while True:
-                    await app.state.update_queue.get()
-                    # Coalesce bursts into a single snapshot
-                    while True:
-                        try:
-                            app.state.update_queue.get_nowait()
-                        except asyncio.QueueEmpty:
-                            break
-
-                    snapshot = await asyncio.to_thread(controller.get_webapp_data)
-                    await manager.broadcast_json({"type": "state_update", "state": snapshot})
-            except asyncio.CancelledError:
-                # Expected during shutdown.
-                return
-
-        app.state.broadcast_task = loop.create_task(_broadcast_worker())
-
-    @app.on_event("shutdown")
-    async def _shutdown() -> None:
-        task = app.state.broadcast_task
-        if task:
-            task.cancel()
-            with contextlib.suppress(asyncio.CancelledError):
-                await task
 
     return app, notifier
 

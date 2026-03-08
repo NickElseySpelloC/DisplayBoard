@@ -174,6 +174,10 @@ def main():  # noqa: PLR0915
         restart=RestartPolicy(mode="on_crash", max_restarts=3, backoff_seconds=2.0),
     )
 
+    # Register all data topic threads from the DataManager
+    for spec in controller.get_data_thread_specs():
+        tm.add(**spec)
+
     tm.start_all()
     # (SIGINT handler already installed; remove later duplicate)
     try:

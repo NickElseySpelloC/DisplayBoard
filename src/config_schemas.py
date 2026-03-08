@@ -67,6 +67,7 @@ class ConfigSchema:
                                 "Name": {"type": "string", "required": True},
                                 "Type": {"type": "string", "required": True, "allowed": ["pexels", "unsplash"]},
                                 "AccessKey": {"type": "string", "required": False, "nullable": True},
+                                "Query": {"type": "string", "required": False, "nullable": True},
                             },
                         },
                     },
@@ -78,6 +79,8 @@ class ConfigSchema:
                 "type": "dict",
                 "required": False,
                 "schema": {
+                    "Latitude": {"type": "float", "required": True},
+                    "Longitude": {"type": "float", "required": True},
                     "RefreshIntervalMin": {"type": "number", "required": False, "nullable": True, "min": 1, "max": 1440},
                     "OWMAPIKey": {"type": "string", "required": False, "nullable": True},
                 },
