@@ -176,7 +176,7 @@ def main():  # noqa: PLR0915
 
     # Register all data topic threads from the DataManager
     for spec in controller.get_data_thread_specs():
-        tm.add(**spec)
+        tm.add(**spec, kwargs={"stop_event": stop_event})
 
     tm.start_all()
     # (SIGINT handler already installed; remove later duplicate)

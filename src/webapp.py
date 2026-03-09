@@ -206,6 +206,7 @@ def create_asgi_app(controller: AppController, config: SCConfigManager, logger: 
     templates = Jinja2Templates(directory=str(repo_root / "templates"))
     notifier = WebAppNotifier()
     manager = ConnectionManager()
+    debug_mode = bool(config.get("Website", "DebugMode", default=False))
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
@@ -238,6 +239,17 @@ def create_asgi_app(controller: AppController, config: SCConfigManager, logger: 
 
     app = FastAPI(lifespan=lifespan)
 
+    # Add middleware to disable caching in debug mode for instant CSS updates
+    if debug_mode:
+        @app.middleware("http")
+        async def disable_static_cache(request: Request, call_next):
+            response = await call_next(request)
+            if request.url.path.startswith("/static/"):
+                response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+                response.headers["Pragma"] = "no-cache"
+                response.headers["Expires"] = "0"
+            return response
+
     # Serve static assets at /static
     app.mount("/static", StaticFiles(directory=str(repo_root / "static")), name="static")
 
@@ -252,9 +264,10 @@ def serve_asgi_blocking(app: FastAPI, config: SCConfigManager, logger: SCLogger,
     host_raw = config.get("Website", "HostingIP", default="127.0.0.1")
     host = host_raw if isinstance(host_raw, str) and host_raw else "127.0.0.1"
     port = int(config.get("Website", "Port", default=8080) or 8080)  # pyright: ignore[reportArgumentType]
+    debug_mode = bool(config.get("Website", "DebugMode", default=False))
 
     # Uvicorn log config can be noisy; keep our SCLogger as the source of truth.
-    uv_config = uvicorn.Config(app, host=host, port=port, log_level="warning", reload=False)
+    uv_config = uvicorn.Config(app, host=host, port=port, log_level="warning", reload=debug_mode)
     server = uvicorn.Server(uv_config)
     # Running under ThreadManager in a non-main thread: avoid installing signal handlers.
     server.install_signal_handlers = lambda: None  # type: ignore[method-assign]

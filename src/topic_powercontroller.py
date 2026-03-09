@@ -29,9 +29,9 @@ def _normalise_status(raw: str | None) -> str:
     return _STATUS_NORMALISE.get(raw.lower().replace(" ", ""), "medium")
 
 
-def _parse_outputs(data: list[dict[str, Any]]) -> list[dict]:
+def _parse_outputs(data: dict) -> list[dict]:
     results = []
-    for item in data:
+    for item in data.get("Outputs", []):
         results.append({
             "name": item.get("Name", ""),
             "display_name": item.get("DisplayName", item.get("Name", "")),
@@ -41,9 +41,9 @@ def _parse_outputs(data: list[dict[str, Any]]) -> list[dict]:
     return results
 
 
-def _parse_meters(data: list[dict[str, Any]]) -> list[dict]:
+def _parse_meters(data: dict) -> list[dict]:
     results = []
-    for item in data:
+    for item in data.get("Meters", []):
         power_raw = item.get("Power", 0)
         results.append({
             "name": item.get("Name", ""),
@@ -53,9 +53,9 @@ def _parse_meters(data: list[dict[str, Any]]) -> list[dict]:
     return results
 
 
-def _parse_probes(data: list[dict[str, Any]]) -> list[dict]:
+def _parse_probes(data: dict) -> list[dict]:
     results = []
-    for item in data:
+    for item in data.get("TempProbes", []):
         temp_raw = item.get("Temperature")
         results.append({
             "name": item.get("Name", ""),
@@ -65,13 +65,13 @@ def _parse_probes(data: list[dict[str, Any]]) -> list[dict]:
     return results
 
 
-def _parse_energy_prices(data: list[dict[str, Any]]) -> tuple[dict, list[dict]]:
+def _parse_energy_prices(data: dict) -> tuple[dict, list[dict]]:
     """Return (current_price_dict, forecast_list)."""
     current: dict = {}
     forecast: list[dict] = []
-    utc_now = datetime.now(UTC)
+    time_now = datetime.now()
 
-    for item in data:
+    for item in data.get("EnergyPrices", []):
         price_type = str(item.get("Type", "")).lower()
         price_raw = item.get("Price")
         status_raw = item.get("Status", "")
@@ -81,7 +81,7 @@ def _parse_energy_prices(data: list[dict[str, Any]]) -> tuple[dict, list[dict]]:
         display_time = ""
         if start_raw:
             try:
-                dt = datetime.fromisoformat(str(start_raw).replace("Z", "+00:00"))
+                dt = datetime.fromisoformat(start_raw)
                 display_time = dt.astimezone().strftime("%H:%M")
             except (ValueError, TypeError):
                 display_time = ""
@@ -97,8 +97,8 @@ def _parse_energy_prices(data: list[dict[str, Any]]) -> tuple[dict, list[dict]]:
         elif price_type == "forecast" and len(forecast) < 6:
             # Skip forecast entries that are in the past
             try:
-                dt = datetime.fromisoformat(str(start_raw).replace("Z", "+00:00"))
-                if dt.astimezone(UTC) < utc_now:
+                dt = datetime.fromisoformat(start_raw)
+                if dt < time_now:
                     continue
             except (ValueError, TypeError):
                 pass
@@ -167,12 +167,10 @@ class TopicPowerController:
         probes_raw = self._get("/tempprobes")
         prices_raw = self._get("/energyprices")
 
-        outputs = _parse_outputs(outputs_raw if isinstance(outputs_raw, list) else [])
-        meters = _parse_meters(meters_raw if isinstance(meters_raw, list) else [])
-        probes = _parse_probes(probes_raw if isinstance(probes_raw, list) else [])
-        current_price, forecast = _parse_energy_prices(
-            prices_raw if isinstance(prices_raw, list) else []
-        )
+        outputs = _parse_outputs(outputs_raw if isinstance(outputs_raw, dict) else {})
+        meters = _parse_meters(meters_raw if isinstance(meters_raw, dict) else {})
+        probes = _parse_probes(probes_raw if isinstance(probes_raw, dict) else {})
+        current_price, forecast = _parse_energy_prices(prices_raw if isinstance(prices_raw, dict) else {})
 
         with self._lock:
             self._pc_data = {
