@@ -52,6 +52,20 @@
             <div class="weather-desc" id="weather-desc">Loading…</div>
             <div class="weather-wind" id="weather-wind">Wind: --</div>
         </div>
+        <div class="weather-extra">
+            <div class="weather-extra-row">
+                <img src="/static/sunrise.png" class="weather-extra-icon" alt="Sunrise">
+                <span class="weather-extra-value" id="weather-sunrise">--:--</span>
+            </div>
+            <div class="weather-extra-row">
+                <img src="/static/sunset.png" class="weather-extra-icon" alt="Sunset">
+                <span class="weather-extra-value" id="weather-sunset">--:--</span>
+            </div>
+            <div class="weather-extra-row">
+                <img src="/static/rain.png" class="weather-extra-icon" alt="Sunrise">
+                <span class="weather-extra-value" id="weather-precip">--%</span>
+            </div>
+        </div>
     </div>
 
     <!-- ── PowerController: Outputs ─────────────────────────────────── -->
@@ -131,6 +145,9 @@ BoardClient.onTopic("weather_current", (data) => {
     setText("weather-desc", data.sky_description || data.sky_title);
     setText("weather-icon", data.icon || "🌡️");
     setText("weather-wind", data.wind_description);
+    setText("weather-sunrise", data.sunrise_time);
+    setText("weather-sunset", data.sunset_time);
+    setText("weather-precip", data.precip_probability !== null && data.precip_probability !== undefined ? `${data.precip_probability}%` : null);
 });
 
 // ── Weather hourly ───────────────────────────────────────────────────────

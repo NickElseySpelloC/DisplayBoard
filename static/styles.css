@@ -139,6 +139,34 @@ html, body {
     color: rgba(255, 255, 255, 0.85);
 }
 
+.weather-extra {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-left: 16px;
+}
+
+.weather-extra-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.weather-extra-icon {
+    font-size: 20px;
+    line-height: 1;
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.weather-extra-value {
+    font-size: 15px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.9);
+    min-width: 65px;
+}
+
 /* ── Hourly forecast ──────────────────────────────────────────────────── */
 .topic-weather-hourly {
     display: flex;
