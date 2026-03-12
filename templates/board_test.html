@@ -13,7 +13,7 @@
             grid-template-areas:
                 "datetime  weather-now      pagination"
                 "outputs   weather-hourly   weather-hourly"
-                "probes    energy           energy"
+                "probes    weather-daily    weather-daily"
                 "meters    energy           energy";                
         }
 
@@ -24,6 +24,7 @@
         .topic-meters         { grid-area: meters; }
         .topic-energy         { grid-area: energy; }
         .topic-weather-hourly { grid-area: weather-hourly; }
+        .topic-weather-daily  { grid-area: weather-daily; }
         .topic-pagination     { grid-area: pagination; }
     </style>
 </head>
@@ -110,17 +111,25 @@
     </div>
 
     <!-- ── Hourly Forecast ────────────────────────────────────────────── -->
-    <div class="topic topic-weather-detail">
+    <div class="topic topic-weather-hourly">
         <div class="topic-label">Hourly Forecast</div>
         <div class="weather-detail-row" id="hourly-forecast">
             <!-- Populated by JS -->
-            <div class="hourly-slot"><div class="weather-detail-temp">--°</div><div class="weather-detail-icon">🌤</div><div class="weather-detail-time">--:--</div></div>
-            <div class="hourly-slot"><div class="weather-detail-temp">--°</div><div class="weather-detail-icon">🌤</div><div class="weather-detail-time">--:--</div></div>
-            <div class="hourly-slot"><div class="weather-detail-temp">--°</div><div class="weather-detail-icon">🌤</div><div class="weather-detail-time">--:--</div></div>
-            <div class="hourly-slot"><div class="weather-detail-temp">--°</div><div class="weather-detail-icon">🌤</div><div class="weather-detail-time">--:--</div></div>
-            <div class="hourly-slot"><div class="weather-detail-temp">--°</div><div class="weather-detail-icon">🌤</div><div class="weather-detail-time">--:--</div></div>
+            <div class="weather-detail-slot"><div class="weather-detail-temp">--°</div><div class="weather-detail-icon">🌤</div><div class="weather-detail-time">--:--</div></div>
+            <div class="weather-detail-slot"><div class="weather-detail-temp">--°</div><div class="weather-detail-icon">🌤</div><div class="weather-detail-time">--:--</div></div>
         </div>
     </div>
+
+    <!-- ── Daily Forecast ────────────────────────────────────────────── -->
+    <div class="topic topic-weather-daily">
+        <div class="topic-label">Daily Forecast</div>
+        <div class="weather-detail-row" id="daily-forecast">
+            <!-- Populated by JS -->
+            <div class="weather-detail-slot"><div class="weather-detail-temp">--°</div><div class="weather-detail-icon">🌤</div><div class="weather-detail-day">--</div></div>
+            <div class="weather-detail-slot"><div class="weather-detail-temp">--°</div><div class="weather-detail-icon">🌤</div><div class="weather-detail-day">--</div></div>
+        </div>
+    </div>
+
 
     <!-- ── Board Pagination ───────────────────────────────────────────── -->
     <div class="topic topic-pagination" data-board-count="{{ board_count | default(2) }}">
@@ -158,13 +167,27 @@ BoardClient.onTopic("weather_hourly", (slots) => {
     const container = document.getElementById("hourly-forecast");
     if (!container || !Array.isArray(slots)) return;
     container.innerHTML = slots.slice(0, 7).map(h => `
-        <div class="hourly-slot">
+        <div class="weather-detail-slot">
             <div class="weather-detail-temp">${h.temp_c !== undefined ? Math.round(h.temp_c) + "°" : "--"}</div>
             <img src="${h.png_icon || ""}" class="weather-detail-icon" alt="${h.sky_description || "Weather"}">
             <div class="weather-detail-time">${h.time || "--"}</div>
         </div>
     `).join("");
 });
+
+// ── Weather daily ───────────────────────────────────────────────────────
+BoardClient.onTopic("weather_daily", (slots) => {
+    const container = document.getElementById("daily-forecast");
+    if (!container || !Array.isArray(slots)) return;
+    container.innerHTML = slots.slice(0, 7).map(h => `
+        <div class="weather-detail-slot">
+            <div class="weather-detail-temp">${h.temp_c !== undefined ? Math.round(h.temp_c) + "°" : "--"}</div>
+            <img src="${h.png_icon || ""}" class="weather-detail-icon" alt="${h.sky_description || "Weather"}">
+            <div class="weather-detail-day">${h.day || "--"}</div>
+        </div>
+    `).join("");
+});
+
 
 // ── PowerController ──────────────────────────────────────────────────────
 BoardClient.onTopic("powercontroller", (data) => {

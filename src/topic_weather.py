@@ -77,6 +77,7 @@ def _reading_to_dict(reading: WeatherReading, include_wind: bool = True) -> dict
         "png_icon": reading.sky.icon_png_url,
         "precip_probability": round(reading.precip_probability * 100) if reading.precip_probability is not None else None,
         "time": reading.local_time.strftime("%I %p").lstrip("0"),
+        "day": reading.local_time.strftime("%a"),
         "sunrise_time": reading.sunrise.strftime("%I:%M %p").lstrip("0") if reading.sunrise else None,
         "sunset_time": reading.sunset.strftime("%I:%M %p").lstrip("0") if reading.sunset else None,
     }
