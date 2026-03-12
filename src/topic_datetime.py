@@ -23,6 +23,7 @@ class TopicDateTime:
             now = datetime.now()
             new_data = {
                 "time": now.strftime("%H:%M"),
+                "seconds": now.strftime("%S"),
                 "date": now.strftime(f"%A {now.day} %B %Y"),  # e.g. "Saturday 7 March 2026"
             }
             with self._lock:

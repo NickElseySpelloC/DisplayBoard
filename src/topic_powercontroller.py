@@ -17,9 +17,17 @@ _STATUS_NORMALISE: dict[str, str] = {
     "spike":   "spike",
     "high":    "high",
     "neutral": "medium",
-    "ok":      "medium",
+    "ok":      "low",
     "low":     "low",
     "verylow": "low",
+}
+
+# Map normalised energy status to display icons.
+_STATUS_ICONS: dict[str, str] = {
+    "spike":  "⛔️",
+    "high":   "🛑",
+    "medium": "⚠️",
+    "low":    "✅",
 }
 
 
@@ -82,7 +90,7 @@ def _parse_energy_prices(data: dict) -> tuple[dict, list[dict]]:
         if start_raw:
             try:
                 dt = datetime.fromisoformat(start_raw)
-                display_time = dt.astimezone().strftime("%H:%M")
+                display_time = dt.astimezone().strftime("%I:%M %p").lstrip("0")
             except (ValueError, TypeError):
                 display_time = ""
 
@@ -92,6 +100,7 @@ def _parse_energy_prices(data: dict) -> tuple[dict, list[dict]]:
             current = {
                 "price": price_val,
                 "status": _normalise_status(status_raw),
+                "status_icon": _STATUS_ICONS.get(_normalise_status(status_raw), "🟡"),
                 "time": display_time,
             }
         elif price_type == "forecast" and len(forecast) < 6:
@@ -105,6 +114,7 @@ def _parse_energy_prices(data: dict) -> tuple[dict, list[dict]]:
             forecast.append({
                 "price": price_val,
                 "status": _normalise_status(status_raw),
+                "status_icon": _STATUS_ICONS.get(_normalise_status(status_raw), "🟡"),
                 "time": display_time,
             })
 
@@ -130,7 +140,7 @@ class TopicPowerController:
 
         self._lock = threading.Lock()
         self._pc_data: dict = {"connected": False, "outputs": [], "meters": [], "probes": []}
-        self._amber_data: dict = {"connected": False, "current_price": None, "current_status": "medium", "forecast": []}
+        self._amber_data: dict = {"connected": False, "current_price": None, "current_status": "medium", "current_status_icon": "🟡", "forecast": []}
 
     def get_data(self) -> dict:
         with self._lock:
@@ -183,6 +193,7 @@ class TopicPowerController:
                 "connected": True,
                 "current_price": current_price.get("price"),
                 "current_status": current_price.get("status", "medium"),
+                "current_status_icon": current_price.get("status_icon", "🟡"),
                 "forecast": forecast,
             }
 

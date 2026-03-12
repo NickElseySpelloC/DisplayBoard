@@ -9,13 +9,12 @@
         /* Board 1: main layout — 3-column grid, iPad landscape */
         .board {
             grid-template-columns: 1fr 1fr 1fr;
-            grid-template-rows: auto 1fr 1fr 1fr auto;
+            grid-template-rows: auto 1fr 1fr 1fr;
             grid-template-areas:
-                "datetime  datetime   weather-now"
-                "outputs   energy     weather-hourly"
-                "probes    energy     weather-hourly"
-                "meters    energy     weather-hourly"
-                "pagination pagination pagination";
+                "datetime  weather-now      pagination"
+                "outputs   weather-hourly   weather-hourly"
+                "probes    energy           energy"
+                "meters    energy           energy";                
         }
 
         .topic-datetime       { grid-area: datetime; }
@@ -37,8 +36,10 @@
 
     <!-- ── Date / Time ───────────────────────────────────────────────── -->
     <div class="topic topic-datetime">
-        <div class="topic-label">Date &amp; Time</div>
-        <div class="datetime-time" id="datetime-time">--:--</div>
+        <div class="time-detail">
+            <div class="datetime-time" id="datetime-time">--:--</div>
+            <div class="datetime-time-seconds" id="datetime-seconds">--</div>
+        </div>
         <div class="datetime-date" id="datetime-date">--- -- ----</div>
     </div>
 
@@ -61,13 +62,13 @@
 
     <!-- ── PowerController: Probes ───────────────────────────────────── -->
     <div class="topic topic-probes">
-        <div class="topic-label">Probes</div>
+        <div class="topic-label">Temperature Probes</div>
         <div id="home-probes"></div>
     </div>
 
     <!-- ── PowerController: Meters ───────────────────────────────────── -->
     <div class="topic topic-meters">
-        <div class="topic-label">Meters</div>
+        <div class="topic-label">Power Draw</div>
         <div id="home-meters"></div>
     </div>
 
@@ -75,19 +76,20 @@
     <div class="topic topic-energy">
         <div class="topic-label">Energy</div>
         <div class="energy-current">
+            <span class="energy-icon" id="energy-icon">🟡</span>
             <span class="energy-rate" id="energy-rate">--</span>
             <span class="energy-unit">¢/kWh</span>
-            <span class="energy-status energy-medium" id="energy-status">---</span>
+            <!-- <span class="energy-status energy-medium" id="energy-status">---</span> -->
         </div>
         <div class="topic-label" style="margin-top: 10px;">Forecast</div>
         <div class="energy-forecast" id="energy-forecast">
             <!-- Populated by JS -->
-            <div class="forecast-slot"><div class="forecast-time">--:--</div><div class="forecast-rate">--¢</div></div>
-            <div class="forecast-slot"><div class="forecast-time">--:--</div><div class="forecast-rate">--¢</div></div>
-            <div class="forecast-slot"><div class="forecast-time">--:--</div><div class="forecast-rate">--¢</div></div>
-            <div class="forecast-slot"><div class="forecast-time">--:--</div><div class="forecast-rate">--¢</div></div>
-            <div class="forecast-slot"><div class="forecast-time">--:--</div><div class="forecast-rate">--¢</div></div>
-            <div class="forecast-slot"><div class="forecast-time">--:--</div><div class="forecast-rate">--¢</div></div>
+            <div class="forecast-slot"><div class="forecast-row"><span class="forecast-icon">🟡</span><span class="forecast-rate">--¢</span></div><div class="forecast-time">--:--</div></div>
+            <div class="forecast-slot"><div class="forecast-row"><span class="forecast-icon">🟡</span><span class="forecast-rate">--¢</span></div><div class="forecast-time">--:--</div></div>
+            <div class="forecast-slot"><div class="forecast-row"><span class="forecast-icon">🟡</span><span class="forecast-rate">--¢</span></div><div class="forecast-time">--:--</div></div>
+            <div class="forecast-slot"><div class="forecast-row"><span class="forecast-icon">🟡</span><span class="forecast-rate">--¢</span></div><div class="forecast-time">--:--</div></div>
+            <div class="forecast-slot"><div class="forecast-row"><span class="forecast-icon">🟡</span><span class="forecast-rate">--¢</span></div><div class="forecast-time">--:--</div></div>
+            <div class="forecast-slot"><div class="forecast-row"><span class="forecast-icon">🟡</span><span class="forecast-rate">--¢</span></div><div class="forecast-time">--:--</div></div>
         </div>
     </div>
 
@@ -96,10 +98,10 @@
         <div class="topic-label">Hourly Forecast</div>
         <div class="hourly-row" id="hourly-forecast">
             <!-- Populated by JS -->
-            <div class="hourly-slot"><div class="hourly-time">--:--</div><div class="hourly-icon">🌤</div><div class="hourly-temp">--°</div></div>
-            <div class="hourly-slot"><div class="hourly-time">--:--</div><div class="hourly-icon">🌤</div><div class="hourly-temp">--°</div></div>
-            <div class="hourly-slot"><div class="hourly-time">--:--</div><div class="hourly-icon">🌤</div><div class="hourly-temp">--°</div></div>
-            <div class="hourly-slot"><div class="hourly-time">--:--</div><div class="hourly-icon">🌤</div><div class="hourly-temp">--°</div></div>
+            <div class="hourly-slot"><div class="hourly-temp">--°</div><div class="hourly-icon">🌤</div><div class="hourly-time">--:--</div></div>
+            <div class="hourly-slot"><div class="hourly-temp">--°</div><div class="hourly-icon">🌤</div><div class="hourly-time">--:--</div></div>
+            <div class="hourly-slot"><div class="hourly-temp">--°</div><div class="hourly-icon">🌤</div><div class="hourly-time">--:--</div></div>
+            <div class="hourly-slot"><div class="hourly-temp">--°</div><div class="hourly-icon">🌤</div><div class="hourly-time">--:--</div></div>
         </div>
     </div>
 
@@ -119,28 +121,27 @@ const BOARD_NAME = {{ board_name | tojson }};
 // ── DateTime ─────────────────────────────────────────────────────────────
 BoardClient.onTopic("datetime", (data) => {
     setText("datetime-time", data.time);
+    setText("datetime-seconds", data.seconds);
     setText("datetime-date", data.date);
 });
 
 // ── Weather current ──────────────────────────────────────────────────────
 BoardClient.onTopic("weather_current", (data) => {
     setText("weather-temp", data.temp_c !== undefined ? `${Math.round(data.temp_c)}°` : null);
-    setText("weather-desc", data.sky);
-    setText("weather-icon", data.icon || "🌤️");
-    setText("weather-wind", data.wind_speed_kmh !== undefined
-        ? `Wind: ${Math.round(data.wind_speed_kmh)} km/h ${data.wind_dir || ""}`.trim()
-        : null);
+    setText("weather-desc", data.sky_description || data.sky_title);
+    setText("weather-icon", data.icon || "🌡️");
+    setText("weather-wind", data.wind_description);
 });
 
 // ── Weather hourly ───────────────────────────────────────────────────────
 BoardClient.onTopic("weather_hourly", (slots) => {
     const container = document.getElementById("hourly-forecast");
     if (!container || !Array.isArray(slots)) return;
-    container.innerHTML = slots.slice(0, 4).map(h => `
+    container.innerHTML = slots.slice(0, 5).map(h => `
         <div class="hourly-slot">
-            <div class="hourly-time">${h.time || "--"}</div>
-            <div class="hourly-icon">${h.icon || "🌤️"}</div>
             <div class="hourly-temp">${h.temp_c !== undefined ? Math.round(h.temp_c) + "°" : "--"}</div>
+            <div class="hourly-icon">${h.icon || "🌤️"}</div>
+            <div class="hourly-time">${h.time || "--"}</div>
         </div>
     `).join("");
 });
@@ -189,19 +190,23 @@ BoardClient.onTopic("amber_energy", (data) => {
 
     const price = data.current_price;
     setText("energy-rate", price !== null && price !== undefined ? price.toFixed(1) : null);
+    setText("energy-icon", data.current_status_icon || "🟡");
 
-    const statusEl = document.getElementById("energy-status");
-    if (statusEl && data.current_status) {
-        statusEl.textContent = data.current_status.toUpperCase();
-        statusEl.className = "energy-status energy-" + data.current_status.toLowerCase();
-    }
+    // const statusEl = document.getElementById("energy-status");
+    // if (statusEl && data.current_status) {
+    //     statusEl.textContent = data.current_status.toUpperCase();
+    //     statusEl.className = "energy-status energy-" + data.current_status.toLowerCase();
+    // }
 
     const container = document.getElementById("energy-forecast");
     if (container && Array.isArray(data.forecast)) {
         container.innerHTML = data.forecast.slice(0, 6).map(f => `
             <div class="forecast-slot">
+                <div class="forecast-row">
+                    <span class="forecast-icon">${f.status_icon || "🟡"}</span>
+                    <span class="forecast-rate">${f.price !== null && f.price !== undefined ? f.price.toFixed(1) + "¢" : "--"}</span>
+                </div>
                 <div class="forecast-time">${f.time || "--"}</div>
-                <div class="forecast-rate energy-${(f.status || "medium").toLowerCase()}">${f.price !== null && f.price !== undefined ? f.price.toFixed(1) + "¢" : "--"}</div>
             </div>
         `).join("");
     }

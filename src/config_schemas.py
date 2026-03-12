@@ -36,7 +36,7 @@ class ConfigSchema:
                 "type": "dict",
                 "required": True,
                 "schema": {
-                    "AutoRotateSec": {"type": "number", "required": False, "nullable": True, "min": 1, "max": 3600},
+                    "AutoRotateSec": {"type": "number", "required": False, "nullable": True, "min": 0, "max": 3600},
                     "Boards": {
                         "type": "list",
                         "required": True,

@@ -140,7 +140,7 @@ requires-dist = [
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "pre-commit", specifier = ">=4.5.1" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
-    { name = "sc-utility", specifier = ">=2.5.5" },
+    { name = "sc-utility", specifier = ">=2.5.6" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.41.0" },
 ]
 
@@ -575,7 +575,7 @@ socks = [
 
 [[package]]
 name = "sc-utility"
-version = "2.5.5"
+version = "2.5.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cerberus" },
@@ -589,9 +589,9 @@ dependencies = [
     { name = "tzdata" },
     { name = "validators" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/60/0f/f5f9c25435d74d860205c22bd3fefaf4f719be7d87da14befc2df7e9da0f/sc_utility-2.5.5.tar.gz", hash = "sha256:f7d23ab72f2f6a8784f763b1371af30b75c7485355f4565cf394064d62b52c5c", size = 65592, upload-time = "2026-02-28T23:24:33.11Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d4/f6/b4f01afa4aa2417cf712a04c7cbed63df72c060a5126c136bcc5cdd53db6/sc_utility-2.5.6.tar.gz", hash = "sha256:d7eba6db56d18512f86d7ae506acc1450631721b5a6667e601d07c6ab6fbfce4", size = 67550, upload-time = "2026-03-11T03:09:41.873Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6c/7e/4d87e92f4bba094bef7d08f10c7afc26344571a4697f18457f79c5d19f09/sc_utility-2.5.5-py3-none-any.whl", hash = "sha256:418d0c42cbce127d93e62ec2d27df17703980b6b74d6224c00846de231d958c4", size = 61252, upload-time = "2026-02-28T23:24:31.684Z" },
+    { url = "https://files.pythonhosted.org/packages/7d/31/b9b006ef9fee6db47d6add8c6e1274f1578adbea57975589e2dd93a5f333/sc_utility-2.5.6-py3-none-any.whl", hash = "sha256:325289f46d5f36d677657f6b7bfcddb29d450dc4a01895ac1707c6a63a2c9028", size = 64824, upload-time = "2026-03-11T03:09:39.582Z" },
 ]
 
 [[package]]

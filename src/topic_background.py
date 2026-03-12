@@ -88,6 +88,7 @@ class TopicBackground:
             return None
 
         query = lib_cfg.get("Query", "nature landscape")
+        self._logger.log_message(f"Fetching background image from Unsplash with query: '{query}'", "debug")
         resp = requests.get(
             "https://api.unsplash.com/photos/random",
             headers={"Authorization": f"Client-ID {access_key}"},
