@@ -63,7 +63,7 @@ html, body {
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.85);
-    margin-bottom: 5px;
+    margin-bottom: 2px;
 }
 
 /* ── Date / Time ──────────────────────────────────────────────────────── */
@@ -107,6 +107,12 @@ html, body {
 /* ── Weather current ──────────────────────────────────────────────────── */
 .topic-weather-current {
     display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.weather-content {
+    display: flex;
     align-items: center;
     gap: 16px;
 }
@@ -118,7 +124,9 @@ html, body {
 }
 
 .weather-icon {
-    font-size: 72px;
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
     line-height: 1;
 }
 
@@ -155,8 +163,8 @@ html, body {
 .weather-extra-icon {
     font-size: 20px;
     line-height: 1;
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
     object-fit: contain;
 }
 
@@ -167,21 +175,21 @@ html, body {
     min-width: 65px;
 }
 
-/* ── Hourly forecast ──────────────────────────────────────────────────── */
-.topic-weather-hourly {
+/* ── Hourly and Daily forecast ──────────────────────────────────────────────────── */
+.topic-weather-detail {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
 }
 
-.hourly-row {
+.weather-detail-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 8px;
 }
 
-.hourly-slot {
+.weather-detail-slot {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -189,16 +197,18 @@ html, body {
     gap: 2px;
 }
 
-.hourly-temp {
+.weather-detail-temp {
     font-size: 22px;
     font-weight: 400;
 }
 
-.hourly-icon {
-    font-size: 32px;
+.weather-detail-icon {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
 }
 
-.hourly-time {
+.weather-detail-time {
     font-size: 12px;
     color: rgba(255, 255, 255, 0.5);
 }

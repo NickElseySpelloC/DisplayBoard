@@ -119,6 +119,15 @@ function setText(id, value, fallback = "—") {
     if (el) el.textContent = (value !== null && value !== undefined) ? value : fallback;
 }
 
+function setImage(id, url, alt = "") {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (url && url !== null && url !== undefined) {
+        el.src = url;
+        if (alt) el.alt = alt;
+    }
+}
+
 function setClass(id, className, condition) {
     const el = document.getElementById(id);
     if (!el) return;
