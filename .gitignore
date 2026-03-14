@@ -26,7 +26,8 @@ wheels/
 /*.txt
 /*.json
 /*.csv
-/*.yaml
+*.yaml
+!config_example.yaml
 logs
 backup
 simulation_data

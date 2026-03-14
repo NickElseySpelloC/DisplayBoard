@@ -124,8 +124,8 @@ html, body {
 }
 
 .weather-icon {
-    width: 100px;
-    height: 100px;
+    font-size: 72px;
+    font-weight: 200;
     object-fit: contain;
     line-height: 1;
 }
@@ -161,7 +161,7 @@ html, body {
 }
 
 .weather-extra-icon {
-    font-size: 20px;
+    font-size: 26px;
     line-height: 1;
     width: 30px;
     height: 30px;
@@ -195,7 +195,14 @@ html, body {
     flex-direction: column;
     align-items: center;
     flex: 1;
-    gap: 2px;
+    gap: 4px;
+}
+
+.weather-detail-day-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
 }
 
 .weather-detail-temp {
@@ -204,15 +211,30 @@ html, body {
 }
 
 .weather-detail-icon {
-    width: 65px;
-    height: 65px;
+    font-size: 38px;
+    font-weight: 200;
     object-fit: contain;
 }
 
+.weather-detail-extra-icon {
+    font-size: 20px;
+    font-weight: 200;
+    object-fit: contain;
+}
+
+.weather-detail-precip {
+    font-size: 16px;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.85);
+    white-space: nowrap;
+}
+
+
 .weather-detail-time,
 .weather-detail-day {
-    font-size: 15px;
-    color: rgba(255, 255, 255, 0.8);
+    font-size: 16px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
 }
 
 
@@ -242,29 +264,40 @@ html, body {
 
 .home-value {
     font-weight: 500;
+    font-size: 16px;
 }
 
 .status-on  { 
+    font-weight: 500;
     color: #4ade80; 
     font-size: 16px;
 }
 .status-off { color: rgba(255, 255, 255, 0.55); }
 
 /* ── Energy pricing ───────────────────────────────────────────────────── */
-.topic-energy {
+.topic-energy,
+.topic-energy-now,
+.topic-energy-forecast {
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
+
+.energy-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
 }
 
 .energy-current {
     display: flex;
     align-items: center;
     gap: 6px;
+    flex-shrink: 0;
 }
 
 .energy-rate {
-    font-size: 36px;
+    font-size: 42px;
     font-weight: 200;
 }
 
@@ -289,6 +322,14 @@ html, body {
 .energy-forecast {
     display: flex;
     gap: 6px;
+    flex: 1;
+}
+
+.energy-forecast-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex: 1;
 }
 
 .forecast-slot {
@@ -299,6 +340,16 @@ html, body {
     gap: 2px;
 }
 
+.forecast-slot-wrap {
+    flex: 0 0 calc(12.5% - 5.25px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+
+
 .forecast-row {
     display: flex;
     align-items: center;
@@ -306,7 +357,7 @@ html, body {
 }
 
 .forecast-time { font-size: 12px; color: rgba(255,255,255,0.75); }
-.forecast-rate { font-size: 20px; font-weight: 200; }
+.forecast-rate { font-size: 24px; font-weight: 300; }
 .forecast-icon { font-size: 14px; }
 
 /* Energy status colours */
@@ -314,6 +365,121 @@ html, body {
 .energy-medium { color: #facc15; background: rgba(250, 204, 21, 0.15); }
 .energy-high   { color: #f87171; background: rgba(248, 113, 113, 0.15); }
 .energy-spike  { color: #ff4444; background: rgba(255, 68, 68, 0.2); }
+
+/* ── Calendar ─────────────────────────────────────────────────────────── */
+.topic-calendar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: hidden;
+}
+
+.calendar-container {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+}
+
+.calendar-day {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 200px;
+    flex: 1;
+}
+
+.calendar-day-header {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.calendar-day-number {
+    font-size: 32px;
+    font-weight: 200;
+    line-height: 1;
+}
+
+.calendar-day-name {
+    font-size: 16px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.calendar-events {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+}
+
+.calendar-event {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.calendar-event::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--calendar-color, rgba(255, 255, 255, 0.5));
+}
+
+.calendar-event-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.calendar-event-time {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.calendar-event-title {
+    font-size: 15px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.3;
+}
+
+.calendar-event-location {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Calendar color variations for different calendars */
+.calendar-event[data-calendar="work"]::before { 
+    background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.calendar-event[data-calendar="personal"]::before { 
+    background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+}
+
+.calendar-event[data-calendar="family"]::before { 
+    background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+}
+
+.calendar-event[data-calendar="other"]::before { 
+    background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%);
+}
 
 /* ── Board pagination ─────────────────────────────────────────────────── */
 .topic-pagination {

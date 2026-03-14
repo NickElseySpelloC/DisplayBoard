@@ -26,7 +26,6 @@ class ConfigSchema:
                 "schema": {
                     "HostingIP": {"type": "string", "required": True},
                     "Port": {"type": "number", "required": False, "nullable": True, "min": 80, "max": 65535},
-                    "PageAutoRefreshSec": {"type": "number", "required": False, "nullable": True, "min": 1, "max": 3600},
                     "DebugMode": {"type": "boolean", "required": False, "nullable": True},
                     "AccessKey": {"type": "string", "required": False, "nullable": True},
                 },

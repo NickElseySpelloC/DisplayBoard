@@ -13,7 +13,6 @@ import asyncio
 import contextlib
 import json
 import os
-from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
@@ -28,6 +27,7 @@ from starlette.templating import Jinja2Templates
 from local_enumerations import Command
 
 if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
     from threading import Event
 
     from sc_utility import SCConfigManager, SCLogger
@@ -145,11 +145,21 @@ def _register_routes(app: FastAPI, controller: AppController, config: SCConfigMa
 
         # Determine which board to serve.
         # ?board=<index> selects by zero-based position in DisplayBoards.Boards list.
-        boards: list = config.get("DisplayBoards", "Boards", default=[]) or []
-        try:
-            board_index = int(request.query_params.get("board", 0))
-        except (ValueError, TypeError):
-            board_index = 0
+        boards_raw = config.get("DisplayBoards", "Boards", default=[]) or []
+        boards: list = boards_raw if isinstance(boards_raw, list) else []
+        auto_rotate_raw = config.get("DisplayBoards", "AutoRotateSec", default=0) or 0
+        auto_rotate_sec = int(auto_rotate_raw) if not isinstance(auto_rotate_raw, dict) else 0
+        requested_board = request.query_params.get("board")
+        if requested_board is None and auto_rotate_sec > 0 and boards:
+            board_index = int(asyncio.get_running_loop().time() // auto_rotate_sec) % len(boards)
+            logger.log_message(f"Auto-rotating to board index {board_index}", "debug")
+        else:
+            try:
+                board_index = int(requested_board or 0)
+            except (ValueError, TypeError):
+                board_index = 0
+            logger.log_message(f"Serving requested board index {board_index}", "debug")
+
         board_index = max(0, min(board_index, len(boards) - 1)) if boards else 0
 
         board_cfg = boards[board_index] if boards else {}
@@ -164,6 +174,7 @@ def _register_routes(app: FastAPI, controller: AppController, config: SCConfigMa
                 "board_name": board_name,
                 "board_index": board_index,
                 "board_count": len(boards),
+                "auto_rotate_sec": auto_rotate_sec,
             },
         )
 
@@ -209,7 +220,7 @@ def create_asgi_app(controller: AppController, config: SCConfigManager, logger: 
     debug_mode = bool(config.get("Website", "DebugMode", default=False))
 
     @asynccontextmanager
-    async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
+    async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
         loop = asyncio.get_running_loop()
         update_queue: asyncio.Queue[None] = asyncio.Queue(maxsize=100)
         notifier.bind(loop, update_queue)

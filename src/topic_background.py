@@ -4,12 +4,13 @@ from __future__ import annotations
 import os
 import random
 import threading
-from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 import requests
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from sc_utility import SCLogger
 
 
@@ -95,6 +96,29 @@ class TopicBackground:
             params={"query": query, "orientation": "landscape"},
             timeout=10,
         )
+
+        # Handle rate limiting and authentication errors
+        if resp.status_code == 403:
+            rate_limit_remaining = resp.headers.get("X-Ratelimit-Remaining", "unknown")
+            self._logger.log_message(
+                f"Unsplash API access denied (403). Rate limit remaining: {rate_limit_remaining}. "
+                "Check if your app is approved for production (demo apps: 50/hr, production: 5000/hr) "
+                "and verify your access key is valid.",
+                "warning",
+            )
+            return None
+        if resp.status_code == 401:
+            self._logger.log_message("Unsplash API authentication failed. Check your access key.", "warning")
+            return None
+
+        # Log rate limit info for monitoring
+        rate_limit_remaining = resp.headers.get("X-Ratelimit-Remaining")
+        if rate_limit_remaining and int(rate_limit_remaining) < 10:
+            self._logger.log_message(
+                f"Unsplash rate limit warning: only {rate_limit_remaining} requests remaining this hour",
+                "warning",
+            )
+
         resp.raise_for_status()
         return resp.json().get("urls", {}).get("regular")
 

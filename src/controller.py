@@ -50,7 +50,6 @@ class AppController:
 
         # Optional callback used to notify the webapp (WebSocket) layer that new data is available
         # This is set by main.py once the ASGI webapp is initialised.
-        self.web_refresh_interval = self.config.get("Website", "PageAutoRefreshSec", default=30)
         self._webapp_notify: Callable[[], None] | None = None
         self._last_webapp_notify: dt.datetime | None = None
 
@@ -111,7 +110,6 @@ class AppController:
         snapshot = self._data_manager.get_snapshot()
         snapshot["global"] = {
             "AppLabel": self.app_label,
-            "RefreshInterval": self.web_refresh_interval,
         }
         return snapshot
 
@@ -165,7 +163,6 @@ class AppController:
         """
         self.poll_interval = int(self.config.get("General", "PollingIntervalSec", default=30) or 30)  # pyright: ignore[reportArgumentType]
         self.app_label = self.config.get("General", "Label", default="AppController")
-        self.web_refresh_interval = self.config.get("Website", "PageAutoRefreshSec", default=30)
 
     def _run_scheduler_tick(self) -> bool:
         """Do all the control processing of the main loop.

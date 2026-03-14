@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import os
-from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from thread_manager import RestartPolicy
@@ -12,6 +11,8 @@ from topic_powercontroller import TopicPowerController
 from topic_weather import TopicWeather
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from sc_utility import SCConfigManager, SCLogger
 
 
@@ -71,11 +72,12 @@ class DataManager:
         lon = config.get("TopicWeather", "Longitude", default=None)
         if lat is not None and lon is not None:
             owm_key = os.environ.get("OWM_API_KEY") or config.get("TopicWeather", "OWMAPIKey", default=None) or None
-            refresh_min = int(config.get("TopicWeather", "RefreshIntervalMin", default=10) or 10)
+            refresh_min_raw = config.get("TopicWeather", "RefreshIntervalMin", default=10) or 10
+            refresh_min = int(refresh_min_raw) if not isinstance(refresh_min_raw, dict) else 10
             self._modules["weather"] = TopicWeather(
-                latitude=float(lat),
-                longitude=float(lon),
-                owm_api_key=owm_key,
+                latitude=float(lat) if not isinstance(lat, dict) else 0.0,
+                longitude=float(lon) if not isinstance(lon, dict) else 0.0,
+                owm_api_key=owm_key if not isinstance(owm_key, dict) else None,
                 refresh_interval_min=refresh_min,
                 on_update=notify_normal,
                 logger=self._logger,
@@ -96,10 +98,11 @@ class DataManager:
                 or config.get("TopicPowerController", "AccessKey", default=None)
                 or None
             )
-            refresh_sec = int(config.get("TopicPowerController", "RefreshIntervalSec", default=10) or 10)
+            refresh_sec_raw = config.get("TopicPowerController", "RefreshIntervalSec", default=10) or 10
+            refresh_sec = int(refresh_sec_raw) if not isinstance(refresh_sec_raw, dict) else 10
             self._modules["pc"] = TopicPowerController(
                 base_url=str(pc_url),
-                access_key=pc_key,
+                access_key=pc_key if not isinstance(pc_key, dict) else None,
                 refresh_interval_sec=refresh_sec,
                 on_update=notify_normal,
                 logger=self._logger,
@@ -111,10 +114,13 @@ class DataManager:
             )
 
         # Background images — active when BackgroundImages section is configured
-        libraries: list = config.get("BackgroundImages", "Libraries", default=None) or []
+        libraries_raw = config.get("BackgroundImages", "Libraries", default=None) or []
+        libraries: list = libraries_raw if isinstance(libraries_raw, list) else []
         if libraries:
-            boards: list = config.get("DisplayBoards", "Boards", default=[]) or []
-            auto_rotate_min = int(config.get("BackgroundImages", "AutoRotateMin", default=5) or 5)
+            boards_raw = config.get("DisplayBoards", "Boards", default=[]) or []
+            boards: list = boards_raw if isinstance(boards_raw, list) else []
+            auto_rotate_raw = config.get("BackgroundImages", "AutoRotateMin", default=5) or 5
+            auto_rotate_min = int(auto_rotate_raw) if not isinstance(auto_rotate_raw, dict) else 5
             self._modules["background"] = TopicBackground(
                 boards=boards,
                 libraries=libraries,

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>{{ board_name | default("DisplayBoard") }}</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        /* Board 1: main layout — 3-column grid, iPad landscape */
+        .board {
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            grid-template-rows: auto 1fr 1fr;
+            grid-template-areas:
+                "datetime           weather-now             weather-now         pagination"
+                "energy-now         outputs                 probes              meters"
+                "energy-forecast    energy-forecast         energy-forecast     energy-forecast";                
+        }
+
+        .topic-datetime             { grid-area: datetime; }
+        .topic-weather-current      { grid-area: weather-now; }
+        .topic-pagination           { grid-area: pagination; }
+        .topic-energy-now           { grid-area: energy-now; }
+        .topic-outputs              { grid-area: outputs; }
+        .topic-probes               { grid-area: probes; }
+        .topic-meters               { grid-area: meters; }
+        .topic-energy-forecast      { grid-area: energy-forecast; }
+    </style>
+</head>
+<body>
+
+<div id="background"></div>
+<div id="ws-status"></div>
+
+<div class="board">
+
+    <!-- ── Date / Time ───────────────────────────────────────────────── -->
+    <div class="topic topic-datetime">
+        <div class="time-detail">
+            <div class="datetime-time" id="datetime-time">--:--</div>
+            <div class="datetime-time-seconds" id="datetime-seconds">--</div>
+        </div>
+        <div class="datetime-date" id="datetime-date">--- -- ----</div>
+    </div>
+
+    <!-- ── Current Weather ───────────────────────────────────────────── -->
+    <div class="topic topic-weather-current">
+        <div class="topic-label">Current Weather</div>
+        <div class="weather-content">
+            <div class="weather-icon" id="weather-icon">🌤</div>
+            <div class="weather-detail">
+                <div class="weather-temp" id="weather-temp">--°</div>
+                <div class="weather-desc" id="weather-desc">Loading…</div>
+                <div class="weather-wind" id="weather-wind">Wind: --</div>
+            </div>
+            <div class="weather-extra">
+                <div class="weather-extra-row">
+                    <img src="/static/sunrise.png" class="weather-extra-icon" alt="Sunrise">
+                    <span class="weather-extra-value" id="weather-sunrise">--:--</span>
+                </div>
+                <div class="weather-extra-row">
+                    <img src="/static/sunset.png" class="weather-extra-icon" alt="Sunset">
+                    <span class="weather-extra-value" id="weather-sunset">--:--</span>
+                </div>
+                <div class="weather-extra-row">
+                    <div class="weather-extra-icon" id="weather-extra-icon">💧</div>
+                    <span class="weather-extra-value" id="weather-precip">--%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Board Pagination ───────────────────────────────────────────── -->
+    <div class="topic topic-pagination" data-board-count="{{ board_count | default(2) }}">
+        <button class="pagination-btn" onclick="prevBoard()">&#8249;</button>
+        <span class="pagination-name" id="board-name">{{ board_name | default("Board 1") }}</span>
+        <button class="pagination-btn" onclick="nextBoard()">&#8250;</button>
+    </div>
+
+    <!-- ── Amber Energy Now ────────────────────────────────────────── -->
+    <div class="topic topic-energy-now">
+        <div class="topic-label">Energy Now</div>
+            <div class="energy-current">
+                <span class="energy-icon" id="energy-icon"> </span>
+                <span class="energy-rate" id="energy-rate">--</span>
+                <span class="energy-unit">¢/kWh</span>
+            </div>
+    </div>
+
+    <!-- ── PowerController: Outputs ─────────────────────────────────── -->
+    <div class="topic topic-outputs">
+        <div class="topic-label">Outputs</div>
+        <div id="home-outputs"></div>
+    </div>
+
+    <!-- ── PowerController: Probes ───────────────────────────────────── -->
+    <div class="topic topic-probes">
+        <div class="topic-label">Temperature Probes</div>
+        <div id="home-probes"></div>
+    </div>
+
+    <!-- ── PowerController: Meters ───────────────────────────────────── -->
+    <div class="topic topic-meters">
+        <div class="topic-label">Power Draw</div>
+        <div id="home-meters"></div>
+    </div>
+
+
+    <!-- ── Amber Energy Forecast ─────────────────────────────────────── -->
+    <div class="topic topic-energy-forecast">
+        <div class="topic-label">Energy</div>
+            <div class="energy-forecast-wrap" id="energy-forecast">
+                <!-- Populated by JS -->
+                <div class="forecast-slot-wrap">
+                    <div class="forecast-row">
+                        <span class="forecast-icon"> </span>
+                        <span class="forecast-rate">--¢</span>
+                    </div>
+                    <div class="forecast-time">--:--</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="/static/board.js"></script>
+<script id="board-config" type="application/json">
+{{ {"board_name": board_name, "auto_rotate_sec": auto_rotate_sec} | tojson }}
+</script>
+<script>
+const BOARD_CONFIG = JSON.parse(document.getElementById("board-config").textContent);
+const BOARD_NAME = BOARD_CONFIG.board_name;
+const AUTO_ROTATE_SEC = BOARD_CONFIG.auto_rotate_sec;
+
+// ── Auto-refresh for board rotation ─────────────────────────────────────────
+// Only auto-refresh when no explicit board is selected (enables auto-rotation)
+if (AUTO_ROTATE_SEC > 0 && !new URLSearchParams(location.search).has('board')) {
+    setTimeout(() => location.reload(), AUTO_ROTATE_SEC * 1000);
+}
+
+// ── DateTime ─────────────────────────────────────────────────────────────
+BoardClient.onTopic("datetime", (data) => {
+    setText("datetime-time", data.time);
+    setText("datetime-seconds", data.seconds);
+    setText("datetime-date", data.date);
+});
+
+// ── PowerController ──────────────────────────────────────────────────────
+BoardClient.onTopic("powercontroller", (data) => {
+    if (!data.connected) return;
+
+    // Outputs — render all into the home panel
+    const container = document.getElementById("home-outputs");
+    if (container && Array.isArray(data.outputs)) {
+        container.innerHTML = data.outputs.map(o => `
+            <div class="home-row">
+                <span class="home-label">${o.display_name || o.name}</span>
+                <span class="home-value ${o.state ? "status-on" : "status-off"}">${o.state ? "ON" : "OFF"}</span>
+            </div>
+        `).join("");
+    }
+
+    // Probes
+    const probeContainer = document.getElementById("home-probes");
+    if (probeContainer && Array.isArray(data.probes)) {
+        probeContainer.innerHTML = data.probes.map(p => `
+            <div class="home-row">
+                <span class="home-label">${p.display_name || p.name}</span>
+                <span class="home-value">${p.temperature !== null ? p.temperature.toFixed(1) + "°C" : "—"}</span>
+            </div>
+        `).join("");
+    }
+
+    // Meters
+    const meterContainer = document.getElementById("home-meters");
+    if (meterContainer && Array.isArray(data.meters)) {
+        meterContainer.innerHTML = data.meters.map(m => `
+            <div class="home-row">
+                <span class="home-label">${m.display_name || m.name}</span>
+                <span class="home-value">${m.power_w !== undefined ? Math.round(m.power_w) + " W" : "—"}</span>
+            </div>
+        `).join("");
+    }
+});
+
+// ── Weather current ──────────────────────────────────────────────────────
+BoardClient.onTopic("weather_current", (data) => {
+    setText("weather-temp", data.temp_c !== undefined ? `${Math.round(data.temp_c)}°` : null);
+    setText("weather-desc", data.sky_description || data.sky_title);
+    setText("weather-icon", data.icon || "🌤️");
+    setText("weather-wind", data.wind_description);
+    setText("weather-sunrise", data.sunrise_time);
+    setText("weather-sunset", data.sunset_time);
+    setText("weather-precip", `${data.precip_probability}%`);
+});
+
+
+// ── Amber Energy ─────────────────────────────────────────────────────────
+BoardClient.onTopic("amber_energy", (data) => {
+    if (!data.connected) return;
+
+    const price = data.current_price;
+    setText("energy-rate", price !== null && price !== undefined ? price.toFixed(1) : null);
+    setText("energy-icon", data.current_status_icon || " ");
+
+    const container = document.getElementById("energy-forecast");
+    if (container && Array.isArray(data.forecast)) {
+        container.innerHTML = data.forecast.slice(0, 16).map(f => `
+            <div class="forecast-slot-wrap">
+                <div class="forecast-row">
+                    <span class="forecast-icon">${f.status_icon || " "}</span>
+                    <span class="forecast-rate">${f.price !== null && f.price !== undefined ? f.price.toFixed(1) + "¢" : "--"}</span>
+                </div>
+                <div class="forecast-time">${f.time || "--"}</div>
+            </div>
+        `).join("");
+    }
+});
+
+// ── Background images ─────────────────────────────────────────────────────
+BoardClient.onTopic("background_images", (data) => {
+    const url = data[BOARD_NAME];
+    if (url) {
+        document.getElementById("background").style.backgroundImage = `url('${url}')`;
+    }
+});
+</script>
+</body>
+</html>

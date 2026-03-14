@@ -1,0 +1,72 @@
+# General settings for the application.
+General:
+  Label: My DisplayBoard          # General label for the application. This is used for display purposes and in log messages.
+  PollingIntervalSec: 10          # Polling interval for the main controller loop (in seconds). 
+  ReportCriticalErrorsDelay: 10   # Some critical errors can trigger email notifications - for example the AmberAPI not responding. This is the time in minutes for an issue to persist before we send an email notification. Leave blank to disable.
+
+
+# General settings for the application's web interface. 
+Website:
+  HostingIP: 0.0.0.0    # The IP address that the web server is listening on. Set to 0.0.0.0 to listen on all interfaces.
+  Port: 8082            # Port to host the web interface on.
+  DebugMode: True       # If True, an exceptions will be reported via the web brower. Set to True for testing, False for a production deployment.
+  AccessKey:            # Access key for the web interface. Set to an empty string to disable access control. Can also be set in the WEBSITE_ACCESS_KEY environment variable.
+
+
+Files:
+  LogfileName: logs/logfile.log   # Log file name. Set to an empty string to disable logging to a file.
+  LogfileVerbosity: debug         # The level of detail captured in the log file. One of: none; error; warning; summary; detailed; debug; all. The default is summary.
+  ConsoleVerbosity: debug         # Controls the amount of information written to the console. One of: error; warning; summary; detailed; debug; all. Errors are written to stderr all other messages are written to stdout. The default is summary.
+  max_lines: 5000                 # Maximum number of lines to keep in the log file. Set to 0 to disable log file trimming.
+
+
+# Enter your settings here if you want to be emailed when there's a critical error 
+# Note that the SMTP username and password should been set in the .env file for security, but you can also set them here if you prefer.
+Email:
+  EnableEmail: True                         # Set to True to enable email notifications 
+  SendEmailsTo: <Your email address here>   # The email address to send notifications to
+  SMTPServer: <Your SMTP server here>       # The SMTP server to use to send the email
+  SMTPPort: 587                             # The SMTP server port
+  SubjectPrefix: "[My DisplayBoard]: "      # A prefix to add to the email subject line
+
+
+# List of DisplayBoards to be displayed on the web interface. 
+DisplayBoards:
+  AutoRotateSec: 0  # How often to rotate the display boards (in seconds). Set to 0 to disable auto-rotation.
+  Boards:
+    - Name: "Primary" # Name of the display board. This is used for display purposes and to reference the board in log messages.
+      Template: "primary.html"  # The HTML template to use for this display board. This defines the layout of the board and the topics to include. The template files should be placed in the /templates folder.
+      BackgroundImageLibrary: "Pexels Nature and Landscape"  # The name of the background image library to use for this board. This should match one of the libraries defined in the BackgroundImages section.
+    - Name: "Energy Detail"
+      Template: "energy_detail.html"  
+
+
+# Define the source for the rotating background images to display on the board(s).
+BackgroundImages: 
+  AutoRotateMin: 15  # How often to rotate the images boards (in minutes). Set to 0 to disable auto-rotation.
+  Libraries:
+    - Name: "Unsplash Nature and Landscape"  # Name of the image library. This is references in the display board config.
+      Type: unsplash  # Library type. One of "unsplash" (for images from the Unsplash API) or "pexels" (for images from the Pexels API).
+      AccessKey:   # Access key for the Unsplash API. Can also be set in the UNSPLASH_ACCESS_KEY environment variable or PEXELS_ACCESS_KEY environment variable.
+      Query: "nature landscape"   # Search query for images (e.g. "ocean sunset", "mountains snow")
+    - Name: "Pexels Nature and Landscape"
+      Type: pexels
+      Query: "nature landscape"
+
+
+
+# Weather data is retrieved using the sc_utility WeatherClient class.
+# WeatherClient uses Open-Meteo (free, no key needed) with optional OWM fallback.
+TopicWeather:
+  Latitude: -33.7295488   # Location latitude (e.g. Sydney, Australia)
+  Longitude: 151.0332694   # Location longitude
+  RefreshIntervalMin: 15  # How often to refresh the weather data (in minutes).
+  OWMAPIKey: ""  # OpenWeatherMap API key (optional — falls back to Open-Meteo if blank). Can also be set in the OWM_API_KEY environment variable.
+
+
+# Configure the base URL and port to query a PowerController DataAPI service. This app will automatically add the relevant endpoints to the base URL (e.g. http://localhost:8081/outputs)
+TopicPowerController:
+  RefreshIntervalSec: 10  # How often to refresh the power controller data (in seconds). 
+  DataAPIBaseURL: "http://localhost:8081"  # The API endpoint to fetch power controller data from. 
+  AccessKey:        # Access key for the power controller API if needed. Can also be set in the PC_DATAAPI_ACCESS_KEY environment variable.
+

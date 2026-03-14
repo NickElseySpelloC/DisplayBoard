@@ -2,13 +2,15 @@
 from __future__ import annotations
 
 import threading
-from collections.abc import Callable
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 import requests
+from sc_utility import DateHelper
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from sc_utility import SCLogger
 
 # Map Amber/PC energy price status values to normalised display classes.
@@ -27,7 +29,7 @@ _STATUS_ICONS: dict[str, str] = {
     "spike":  "⛔️",
     "high":   "🛑",
     "medium": "⚠️",
-    "low":    "✅",
+    "low":    " ",
 }
 
 
@@ -77,7 +79,7 @@ def _parse_energy_prices(data: dict) -> tuple[dict, list[dict]]:
     """Return (current_price_dict, forecast_list)."""
     current: dict = {}
     forecast: list[dict] = []
-    time_now = datetime.now()
+    time_now = DateHelper.now()
 
     for item in data.get("EnergyPrices", []):
         price_type = str(item.get("Type", "")).lower()
@@ -100,10 +102,10 @@ def _parse_energy_prices(data: dict) -> tuple[dict, list[dict]]:
             current = {
                 "price": price_val,
                 "status": _normalise_status(status_raw),
-                "status_icon": _STATUS_ICONS.get(_normalise_status(status_raw), "🟡"),
+                "status_icon": _STATUS_ICONS.get(_normalise_status(status_raw), " "),
                 "time": display_time,
             }
-        elif price_type == "forecast" and len(forecast) < 6:
+        elif price_type == "forecast" and len(forecast) < 24:
             # Skip forecast entries that are in the past
             try:
                 dt = datetime.fromisoformat(start_raw)
@@ -114,7 +116,7 @@ def _parse_energy_prices(data: dict) -> tuple[dict, list[dict]]:
             forecast.append({
                 "price": price_val,
                 "status": _normalise_status(status_raw),
-                "status_icon": _STATUS_ICONS.get(_normalise_status(status_raw), "🟡"),
+                "status_icon": _STATUS_ICONS.get(_normalise_status(status_raw), " "),
                 "time": display_time,
             })
 
@@ -193,7 +195,7 @@ class TopicPowerController:
                 "connected": True,
                 "current_price": current_price.get("price"),
                 "current_status": current_price.get("status", "medium"),
-                "current_status_icon": current_price.get("status_icon", "🟡"),
+                "current_status_icon": current_price.get("status_icon", " "),
                 "forecast": forecast,
             }
 

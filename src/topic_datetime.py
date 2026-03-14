@@ -2,8 +2,12 @@
 from __future__ import annotations
 
 import threading
-from collections.abc import Callable
-from datetime import datetime
+from typing import TYPE_CHECKING
+
+from sc_utility import DateHelper
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class TopicDateTime:
@@ -20,7 +24,7 @@ class TopicDateTime:
 
     def run(self, stop_event: threading.Event) -> None:
         while not stop_event.is_set():
-            now = datetime.now()
+            now = DateHelper.now()
             new_data = {
                 "time": now.strftime("%H:%M"),
                 "seconds": now.strftime("%S"),
