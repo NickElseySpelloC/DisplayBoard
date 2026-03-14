@@ -17,7 +17,7 @@ Files:
   LogfileName: logs/logfile.log   # Log file name. Set to an empty string to disable logging to a file.
   LogfileVerbosity: debug         # The level of detail captured in the log file. One of: none; error; warning; summary; detailed; debug; all. The default is summary.
   ConsoleVerbosity: debug         # Controls the amount of information written to the console. One of: error; warning; summary; detailed; debug; all. Errors are written to stderr all other messages are written to stdout. The default is summary.
-  max_lines: 5000                 # Maximum number of lines to keep in the log file. Set to 0 to disable log file trimming.
+  LogfileMaxLines: 5000                 # Maximum number of lines to keep in the log file. Set to 0 to disable log file trimming.
 
 
 # Enter your settings here if you want to be emailed when there's a critical error 

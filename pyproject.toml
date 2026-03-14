@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Display one of more boards on a client browser"
 readme = "README.md"
 requires-python = ">=3.13"
-service_name="displayboard"
+service_name="DisplayBoard"
 launch_path="src/main.py"
 dependencies = [
     "fastapi>=0.135.1",
