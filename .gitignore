@@ -33,3 +33,5 @@ backup
 simulation_data
 system_state.*
 .claude
+google_credentials.json
+tokens

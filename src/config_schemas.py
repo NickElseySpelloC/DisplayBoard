@@ -100,6 +100,26 @@ class ConfigSchema:
                 "required": False,
                 "schema": {
                     "RefreshIntervalMin": {"type": "number", "required": False, "nullable": True, "min": 1, "max": 1440},
+                    "DaysAhead": {"type": "number", "required": False, "nullable": True, "min": 1, "max": 90},
+                    "CredentialsFile": {"type": "string", "required": False, "nullable": True},
+                    "TokensDir": {"type": "string", "required": False, "nullable": True},
+                    "Accounts": {
+                        "type": "list",
+                        "required": False,
+                        "nullable": True,
+                        "schema": {
+                            "type": "dict",
+                            "schema": {
+                                "Name": {"type": "string", "required": True},
+                                "Calendars": {
+                                    "type": "list",
+                                    "required": False,
+                                    "nullable": True,
+                                    "schema": {"type": "string"},
+                                },
+                            },
+                        },
+                    },
                 },
             },
 

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from thread_manager import RestartPolicy
 from topic_background import TopicBackground
+from topic_calendar import TopicCalendar
 from topic_datetime import TopicDateTime
 from topic_powercontroller import TopicPowerController
 from topic_weather import TopicWeather
@@ -58,7 +59,7 @@ class DataManager:
 
     # ── Private ──────────────────────────────────────────────────────────
 
-    def _init_modules(
+    def _init_modules(  # noqa: PLR0914
         self,
         config: SCConfigManager,
         notify_force: Callable[[], None],
@@ -135,3 +136,35 @@ class DataManager:
             )
         else:
             self._logger.log_message("Background images disabled: no libraries configured.", "summary")
+
+        # Calendar — active when Accounts are configured
+        cal_accounts_raw = config.get("TopicCalendar", "Accounts", default=None) or []
+        cal_accounts: list = cal_accounts_raw if isinstance(cal_accounts_raw, list) else []
+        if cal_accounts:
+            cal_refresh_raw = config.get("TopicCalendar", "RefreshIntervalMin", default=15) or 15
+            cal_refresh = int(cal_refresh_raw) if not isinstance(cal_refresh_raw, dict) else 15
+            cal_days_raw = config.get("TopicCalendar", "DaysAhead", default=7) or 7
+            cal_days = int(cal_days_raw) if not isinstance(cal_days_raw, dict) else 7
+            cal_creds = (
+                os.environ.get("GOOGLE_CREDENTIALS_FILE")
+                or config.get("TopicCalendar", "CredentialsFile", default="google_credentials.json")
+                or "google_credentials.json"
+            )
+            cal_tokens = config.get("TopicCalendar", "TokensDir", default="tokens") or "tokens"
+            self._modules["calendar"] = TopicCalendar(
+                accounts=cal_accounts,
+                days_ahead=cal_days,
+                credentials_file=str(cal_creds),
+                tokens_dir=str(cal_tokens),
+                on_update=notify_normal,
+                logger=self._logger,
+                refresh_interval_min=cal_refresh,
+            )
+            self._logger.log_message(
+                f"Calendar topic enabled ({len(cal_accounts)} account(s), {cal_days} days ahead)",
+                "detailed",
+            )
+        else:
+            self._logger.log_message(
+                "Calendar topic disabled: no accounts configured in TopicCalendar.", "summary"
+            )

@@ -59,7 +59,7 @@ html, body {
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.85);
-    margin-bottom: 2px;
+    margin-bottom: 0px;
 }
 
 /* ── Date / Time ──────────────────────────────────────────────────────── */
@@ -260,15 +260,17 @@ html, body {
 
 .home-value {
     font-weight: 500;
-    font-size: 16px;
+    font-size: 20px;
 }
 
 .status-on  { 
     font-weight: 500;
     color: #4ade80; 
+}
+.status-off { 
+    color: rgba(255, 255, 255, 0.55);
     font-size: 16px;
 }
-.status-off { color: rgba(255, 255, 255, 0.55); }
 
 /* ── Energy pricing ───────────────────────────────────────────────────── */
 .topic-energy,
@@ -282,7 +284,7 @@ html, body {
 .energy-container {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 10px;
 }
 
 .energy-current {
@@ -293,7 +295,7 @@ html, body {
 }
 
 .energy-rate {
-    font-size: 42px;
+    font-size: 54px;
     font-weight: 200;
 }
 
@@ -353,8 +355,10 @@ html, body {
 }
 
 .forecast-time { font-size: 12px; color: rgba(255,255,255,0.75); }
-.forecast-rate { font-size: 24px; font-weight: 300; }
+.forecast-rate { font-size: 30px; font-weight: 300; }
 .forecast-icon { font-size: 14px; }
+.forecast-unit { font-size: 15px; color: rgba(255, 255, 255, 0.75); }
+
 
 /* Energy status colours */
 .energy-low    { color: #4ade80; background: rgba(74, 222, 128, 0.15); }
@@ -372,54 +376,57 @@ html, body {
 
 .calendar-container {
     display: flex;
-    gap: 12px;
-    overflow-x: auto;
+    flex-direction: row;
+    gap: 16px;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    align-items: flex-start;
 }
 
-.calendar-day {
+.cal-column {
+    flex: 1 1 0;
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    min-width: 200px;
-    flex: 1;
+    overflow: hidden;
 }
 
 .calendar-day-header {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
     padding-bottom: 8px;
+    margin-bottom: 8px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    flex-shrink: 0;
 }
 
 .calendar-day-number {
-    font-size: 32px;
+    font-size: 24px;
     font-weight: 200;
     line-height: 1;
+    white-space: nowrap;
 }
 
 .calendar-day-name {
     font-size: 16px;
     font-weight: 400;
     color: rgba(255, 255, 255, 0.75);
-}
-
-.calendar-events {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    overflow-y: auto;
+    white-space: nowrap;
 }
 
 .calendar-event {
     background: rgba(0, 0, 0, 0.3);
     border-radius: 8px;
     padding: 10px 12px;
-    display: flex;
-    gap: 10px;
+    display: block;
     position: relative;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 8px;
+    break-inside: avoid;
 }
 
 .calendar-event::before {
@@ -458,23 +465,6 @@ html, body {
     display: flex;
     align-items: center;
     gap: 4px;
-}
-
-/* Calendar color variations for different calendars */
-.calendar-event[data-calendar="work"]::before { 
-    background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
-}
-
-.calendar-event[data-calendar="personal"]::before { 
-    background: linear-gradient(180deg, #10b981 0%, #059669 100%);
-}
-
-.calendar-event[data-calendar="family"]::before { 
-    background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
-}
-
-.calendar-event[data-calendar="other"]::before { 
-    background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%);
 }
 
 /* ── Board pagination ─────────────────────────────────────────────────── */

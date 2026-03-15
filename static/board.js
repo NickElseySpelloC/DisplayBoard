@@ -135,3 +135,94 @@ function setClass(id, className, condition) {
     el.className = el.className.replace(/\benergy-\w+\b|\bstatus-\w+\b/g, "").trim();
     if (condition !== false) el.classList.add(className);
 }
+
+
+// ── Calendar column builder ─────────────────────────────────────────────────
+// compact=true  → omit location; used when the calendar panel is small
+// compact=false → full event card including location
+
+function _buildCalendarColumns(container, days, compact = false) {
+    container.innerHTML = '';
+    const colH = container.clientHeight;
+
+    // Measure header height with an off-screen probe so we know the spacer size
+    const probe = document.createElement('div');
+    probe.className = 'calendar-day-header';
+    probe.innerHTML = '<div class="calendar-day-number">00</div><div class="calendar-day-name">Mon</div>';
+    Object.assign(probe.style, { position: 'absolute', left: '-9999px', width: '160px', visibility: 'hidden' });
+    document.body.appendChild(probe);
+    const HEADER_H = probe.offsetHeight + 8;  // +8 for margin-bottom below header
+    document.body.removeChild(probe);
+
+    // Staging area used to measure individual event heights before placing them
+    const stage = document.createElement('div');
+    Object.assign(stage.style, { position: 'absolute', left: '-9999px', width: '160px', visibility: 'hidden' });
+    document.body.appendChild(stage);
+
+    function newCol(addSpacer) {
+        const el = document.createElement('div');
+        el.className = 'cal-column';
+        container.appendChild(el);
+        if (addSpacer) {
+            const spacer = document.createElement('div');
+            spacer.style.height = HEADER_H + 'px';
+            spacer.style.flexShrink = '0';
+            el.appendChild(spacer);
+        }
+        return el;
+    }
+
+    for (const day of days) {
+        // Each day always starts in a fresh column (no spacer — header goes here)
+        let col = newCol(false);
+        let usedH = HEADER_H;
+
+        const headerEl = document.createElement('div');
+        headerEl.className = 'calendar-day-header';
+        headerEl.innerHTML =
+            `<div class="calendar-day-number">${day.day_number || '--'}</div>` +
+            `<div class="calendar-day-name">${day.day_name || '------'}</div>`;
+        col.appendChild(headerEl);
+
+        for (const ev of (day.events || [])) {
+            const locationHtml = (!compact && ev.location)
+                ? `<div class="calendar-event-location">📍 ${ev.location}</div>`
+                : '';
+            const inner =
+                `<div class="calendar-event-content">` +
+                `<div class="calendar-event-time">${ev.time || ''}</div>` +
+                `<div class="calendar-event-title">${ev.title || 'Untitled Event'}</div>` +
+                locationHtml +
+                `</div>`;
+
+            // Measure in staging area (consistent width, out of view)
+            stage.innerHTML = `<div class="calendar-event">${inner}</div>`;
+            const evH = stage.firstChild.offsetHeight + 8;  // +8 for margin-bottom
+
+            if (colH > 0 && usedH + evH > colH) {
+                if (col.children.length === 1) {
+                    // Only the header is in this column — the first event doesn't fit.
+                    // Discard the empty column and move the header into a fresh one so
+                    // we don't leave a header-only column followed by a spacer column.
+                    container.removeChild(col);
+                    col = newCol(false);
+                    col.appendChild(headerEl);
+                } else {
+                    // Events already placed — start an overflow column with a spacer
+                    // so events align with the first-event row of the header column.
+                    col = newCol(true);
+                }
+                usedH = HEADER_H;
+            }
+
+            const evEl = document.createElement('div');
+            evEl.className = 'calendar-event';
+            evEl.style.cssText = `--calendar-color: ${ev.color || 'rgba(255,255,255,0.5)'}`;
+            evEl.innerHTML = inner;
+            col.appendChild(evEl);
+            usedH += evH;
+        }
+    }
+
+    document.body.removeChild(stage);
+}

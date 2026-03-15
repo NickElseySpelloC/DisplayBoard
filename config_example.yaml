@@ -70,3 +70,22 @@ TopicPowerController:
   DataAPIBaseURL: "http://localhost:8081"  # The API endpoint to fetch power controller data from. 
   AccessKey:        # Access key for the power controller API if needed. Can also be set in the PC_DATAAPI_ACCESS_KEY environment variable.
 
+
+# Google Calendar integration.
+# Before starting the app, run the one-time auth helper for each account:
+#   python src/setup_calendar_auth.py --account <Name>
+# This opens a browser, grants read-only calendar access, and saves a token file.
+# On a remote server: run the script locally, then copy tokens/<Name>.json to the server.
+TopicCalendar:
+  RefreshIntervalMin: 15      # How often to refresh calendar data (in minutes).
+  DaysAhead: 7                # How many days ahead to fetch events for.
+  CredentialsFile: "google_credentials.json"  # OAuth client secret JSON from Google Cloud Console.
+  TokensDir: "tokens"         # Directory where per-account token files are stored.
+  Accounts:
+    - Name: "Personal"        # Must match the token filename: tokens/Personal.json
+      # Calendars:            # Optional: list calendar names/IDs to include. Omit to include all.
+      #   - "primary"
+      #   - "Family"
+    - Name: "Work"            # Must match the token filename: tokens/Work.json
+      # Calendars:            # Optional: omit to include all calendars for this account.
+

@@ -9,7 +9,7 @@
         /* Board 1: main layout — 3-column grid, iPad landscape */
         .board {
             grid-template-columns: 1fr 3fr 0.5fr;
-            grid-template-rows: auto 1.1fr 1.2fr 0.8fr 1.2fr;
+            grid-template-rows: 1.2fr 1.1fr 1.2fr 0.8fr 1.3fr;
             grid-template-areas:
                 "datetime       weather-now      pagination"
                 "power          weather-hourly   weather-hourly"
@@ -127,15 +127,20 @@
             </div>
             <div class="energy-forecast" id="energy-forecast">
                 <!-- Populated by JS -->
-                <div class="forecast-slot"><div class="forecast-row"><span class="forecast-icon"> </span><span class="forecast-rate">--¢</span></div><div class="forecast-time">--:--</div></div>
+                <div class="forecast-slot">
+                    <div class="forecast-row">
+                        <span class="forecast-icon"> </span>
+                        <span class="forecast-rate">--</span>
+                        <span class="forecast-unit">¢</span>
+                    </div>
+                    <div class="forecast-time">--:--</div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- ── Calendar ────────────────────────────────────────────────────── -->
-    <!-- TO DO -->
     <div class="topic topic-calendar">
-        <div class="topic-label">Calendar</div>
         <div class="calendar-container" id="calendar-container">
             To follow...
         </div>
@@ -186,7 +191,7 @@ BoardClient.onTopic("powercontroller", (data) => {
         probeContainer.innerHTML = data.probes.map(p => `
             <div class="home-row">
                 <span class="home-label">${p.display_name || p.name}</span>
-                <span class="home-value">${p.temperature !== null ? p.temperature.toFixed(1) + "°C" : "—"}</span>
+                <span class="home-value">${p.temperature !== null ? p.temperature.toFixed(0) + "°C" : "—"}</span>
             </div>
         `).join("");
     }
@@ -242,7 +247,7 @@ BoardClient.onTopic("amber_energy", (data) => {
     if (!data.connected) return;
 
     const price = data.current_price;
-    setText("energy-rate", price !== null && price !== undefined ? price.toFixed(1) : null);
+    setText("energy-rate", price !== null && price !== undefined ? price.toFixed(0) : null);
     setText("energy-icon", data.current_status_icon || " ");
 
     const container = document.getElementById("energy-forecast");
@@ -251,7 +256,8 @@ BoardClient.onTopic("amber_energy", (data) => {
             <div class="forecast-slot">
                 <div class="forecast-row">
                     <span class="forecast-icon">${f.status_icon || " "}</span>
-                    <span class="forecast-rate">${f.price !== null && f.price !== undefined ? f.price.toFixed(1) + "¢" : "--"}</span>
+                    <span class="forecast-rate">${f.price !== null && f.price !== undefined ? f.price.toFixed(0) : "--"}</span>
+                    <span class="forecast-unit">¢</span>
                 </div>
                 <div class="forecast-time">${f.time || "--"}</div>
             </div>
@@ -263,26 +269,7 @@ BoardClient.onTopic("amber_energy", (data) => {
 BoardClient.onTopic("calendar", (days) => {
     const container = document.getElementById("calendar-container");
     if (!container || !Array.isArray(days)) return;
-    
-    container.innerHTML = days.map(day => `
-        <div class="calendar-day">
-            <div class="calendar-day-header">
-                <div class="calendar-day-number">${day.day_number || "--"}</div>
-                <div class="calendar-day-name">${day.day_name || "------"}</div>
-            </div>
-            <div class="calendar-events">
-                ${(day.events || []).map(event => `
-                    <div class="calendar-event" data-calendar="${event.calendar || 'other'}" style="--calendar-color: ${event.color || ''}">
-                        <div class="calendar-event-content">
-                            <div class="calendar-event-time">${event.time || ""}</div>
-                            <div class="calendar-event-title">${event.title || "Untitled Event"}</div>
-                            ${event.location ? `<div class="calendar-event-location">📍 ${event.location}</div>` : ""}
-                        </div>
-                    </div>
-                `).join("")}
-            </div>
-        </div>
-    `).join("");
+    _buildCalendarColumns(container, days, true);
 });
 
 // ── Background images ─────────────────────────────────────────────────────
