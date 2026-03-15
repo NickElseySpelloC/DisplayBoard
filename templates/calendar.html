@@ -73,25 +73,10 @@
 
     <!-- ── Calendar ────────────────────────────────────────────────────── -->
     <div class="topic topic-calendar">
-        <div class="topic-label">Calendar</div>
         <div class="calendar-container" id="calendar-container">
-            <!-- Populated by JS -->
-            <div class="calendar-day">
-                <div class="calendar-day-header">
-                    <div class="calendar-day-number">--</div>
-                    <div class="calendar-day-name">------</div>
-                </div>
-                <div class="calendar-events">
-                    <div class="calendar-event" data-calendar="personal">
-                        <div class="calendar-event-content">
-                            <div class="calendar-event-time">--:--</div>
-                            <div class="calendar-event-title">Loading...</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            Loading...
         </div>
-    </div>
+    </div>    
 
 </div>
 
@@ -132,7 +117,7 @@ BoardClient.onTopic("weather_current", (data) => {
 BoardClient.onTopic("calendar", (days) => {
     const container = document.getElementById("calendar-container");
     if (!container || !Array.isArray(days)) return;
-    _buildCalendarColumns(container, days, false);
+    BuildCalendarColumns(container, days, false);
 });
 
 // ── Background images ─────────────────────────────────────────────────────

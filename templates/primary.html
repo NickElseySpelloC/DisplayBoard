@@ -9,7 +9,7 @@
         /* Board 1: main layout — 3-column grid, iPad landscape */
         .board {
             grid-template-columns: 1fr 3fr 0.5fr;
-            grid-template-rows: 1.2fr 1.1fr 1.2fr 0.8fr 1.3fr;
+            grid-template-rows: 1.2fr 1.1fr 1.2fr 0.8fr 1.2fr;
             grid-template-areas:
                 "datetime       weather-now      pagination"
                 "power          weather-hourly   weather-hourly"
@@ -142,7 +142,7 @@
     <!-- ── Calendar ────────────────────────────────────────────────────── -->
     <div class="topic topic-calendar">
         <div class="calendar-container" id="calendar-container">
-            To follow...
+            Loading...
         </div>
     </div>    
 
@@ -269,7 +269,7 @@ BoardClient.onTopic("amber_energy", (data) => {
 BoardClient.onTopic("calendar", (days) => {
     const container = document.getElementById("calendar-container");
     if (!container || !Array.isArray(days)) return;
-    _buildCalendarColumns(container, days, true);
+    BuildCalendarColumns(container, days, true);
 });
 
 // ── Background images ─────────────────────────────────────────────────────

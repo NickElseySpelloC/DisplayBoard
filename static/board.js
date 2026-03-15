@@ -141,7 +141,7 @@ function setClass(id, className, condition) {
 // compact=true  → omit location; used when the calendar panel is small
 // compact=false → full event card including location
 
-function _buildCalendarColumns(container, days, compact = false) {
+function BuildCalendarColumns(container, days, compact = false) {
     container.innerHTML = '';
     const colH = container.clientHeight;
 
