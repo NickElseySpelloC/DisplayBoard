@@ -71,6 +71,7 @@ class DataManager:
         # Weather — active when Latitude + Longitude are configured
         lat = config.get("TopicWeather", "Latitude", default=None)
         lon = config.get("TopicWeather", "Longitude", default=None)
+        preferred_provider = config.get("TopicWeather", "PreferredProvider", default="owm") or "owm"
         if lat is not None and lon is not None:
             owm_key = os.environ.get("OWM_API_KEY") or config.get("TopicWeather", "OWMAPIKey", default=None) or None
             refresh_min_raw = config.get("TopicWeather", "RefreshIntervalMin", default=10) or 10
@@ -79,6 +80,7 @@ class DataManager:
                 latitude=float(lat) if not isinstance(lat, dict) else 0.0,
                 longitude=float(lon) if not isinstance(lon, dict) else 0.0,
                 owm_api_key=owm_key if not isinstance(owm_key, dict) else None,
+                preferred_provider=preferred_provider if not isinstance(preferred_provider, dict) else "owm",
                 refresh_interval_min=refresh_min,
                 on_update=notify_normal,
                 logger=self._logger,

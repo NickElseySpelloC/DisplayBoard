@@ -191,7 +191,7 @@ BoardClient.onTopic("powercontroller", (data) => {
         probeContainer.innerHTML = data.probes.map(p => `
             <div class="home-row">
                 <span class="home-label">${p.display_name || p.name}</span>
-                <span class="home-value">${p.temperature !== null ? p.temperature.toFixed(0) + "°C" : "—"}</span>
+                <span class="home-value">${p.temperature !== null ? p.temperature.toFixed(1) + "°C" : "—"}</span>
             </div>
         `).join("");
     }

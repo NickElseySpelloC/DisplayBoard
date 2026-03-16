@@ -81,6 +81,7 @@ class ConfigSchema:
                     "Latitude": {"type": "float", "required": True},
                     "Longitude": {"type": "float", "required": True},
                     "RefreshIntervalMin": {"type": "number", "required": False, "nullable": True, "min": 1, "max": 1440},
+                    "PreferredProvider": {"type": "string", "required": False, "nullable": True, "allowed": ["owm", "open_meteo"]},
                     "OWMAPIKey": {"type": "string", "required": False, "nullable": True},
                 },
             },

@@ -101,11 +101,13 @@ class TopicWeather:
         logger: SCLogger,
         refresh_interval_min: int = 10,
         owm_api_key: str | None = None,
+        preferred_provider: str = "owm",
     ) -> None:
         self._client = WeatherClient(latitude, longitude, owm_api_key or None)
         self._on_update = on_update
         self._logger = logger
         self._refresh_secs = max(60, int(refresh_interval_min) * 60)
+        self._preferred_provider = preferred_provider
         self._lock = threading.Lock()
         self._current: dict = {}
         self._hourly: list[dict] = []
@@ -126,7 +128,7 @@ class TopicWeather:
     def run(self, stop_event: threading.Event) -> None:
         while not stop_event.is_set():
             try:
-                weather_data = self._client.get_weather()
+                weather_data = self._client.get_weather(first_choice=self._preferred_provider)  # Issue #6
 
                 current = _reading_to_dict(weather_data.current)
                 current["source"] = weather_data.station.source

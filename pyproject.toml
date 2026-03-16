@@ -1,6 +1,6 @@
 [project]
 name = "displayboard"
-version = "0.2.0"
+version = "0.2.1"
 description = "Display one of more boards on a client browser"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -14,7 +14,7 @@ dependencies = [
     "jinja2>=3.1.6",
     "pre-commit>=4.5.1",
     "python-dotenv>=1.2.2",
-    "sc-utility>=2.5.7",
+    "sc-utility>=2.5.8",
     "uvicorn[standard]>=0.41.0",
 ]
 

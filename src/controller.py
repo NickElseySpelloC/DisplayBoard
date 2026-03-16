@@ -190,6 +190,8 @@ class AppController:
             self.last_config_check = last_modified
             self.logger.log_message("Configuration file has changed, reloading...", "detailed")
             self._initialise()
+            # TO DO: Remove this once the config manager supports granular change detection and downstream notifications (issue 8)
+            self.logger.log_message("Please restart the application to apply configuration changes. Automatic reload is not yet supported.", "warning")
 
     def _apply_command(self, cmd: Command) -> None:
         """Apply a command posted to the controller."""
