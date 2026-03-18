@@ -233,7 +233,7 @@ wheels = [
 
 [[package]]
 name = "displayboard"
-version = "0.2.0"
+version = "0.2.1"
 source = { virtual = "." }
 dependencies = [
     { name = "fastapi" },
@@ -256,7 +256,7 @@ requires-dist = [
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "pre-commit", specifier = ">=4.5.1" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
-    { name = "sc-utility", specifier = ">=2.5.8" },
+    { name = "sc-utility", specifier = ">=2.6.1" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.41.0" },
 ]
 
@@ -964,7 +964,7 @@ wheels = [
 
 [[package]]
 name = "sc-utility"
-version = "2.5.8"
+version = "2.6.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "astral" },
@@ -981,9 +981,9 @@ dependencies = [
     { name = "tzdata" },
     { name = "validators" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a1/17/43c652f9170bc72bdb0575148fdf42bb2d3d4fc974ea2d7ebd8db79002a7/sc_utility-2.5.8.tar.gz", hash = "sha256:d4689b358d91d4337e327c40c127653201bf83ed613955f8cedf93eb0d2fabab", size = 71179, upload-time = "2026-03-15T22:54:43.324Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ed/28/06de7beba8b3564e11d1a594642d2339537e6377d6c94a82b3818bcd7b6c/sc_utility-2.6.1.tar.gz", hash = "sha256:2e832096ce9bd46eef59a51b64f3259a1da6788f862d4a8a2e253cf8ab6964a0", size = 420824, upload-time = "2026-03-18T03:57:59.532Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/10/84/48a836f421ead1627dacace92b81dc59b7544a6d2bee915b5bd176ab5891/sc_utility-2.5.8-py3-none-any.whl", hash = "sha256:819d5a9deb0bbfb9f2ff60a8008c9c08997db1e61ee494d843acdc682a1d8eb2", size = 69192, upload-time = "2026-03-15T22:54:42.205Z" },
+    { url = "https://files.pythonhosted.org/packages/2c/24/09f3c27edec2d47ca8cbe102962d932b40f076099116ebbea1d3a7ef5de5/sc_utility-2.6.1-py3-none-any.whl", hash = "sha256:e3a40fbaa789def75ff99eb4bef39ed0aa6500063f82ec1ef774bfc25d2d00dc", size = 1491276, upload-time = "2026-03-18T03:57:57.891Z" },
 ]
 
 [[package]]

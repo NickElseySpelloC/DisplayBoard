@@ -61,6 +61,7 @@ TopicWeather:
   Latitude: -33.7295488   # Location latitude (e.g. Sydney, Australia)
   Longitude: 151.0332694   # Location longitude
   RefreshIntervalMin: 15  # How often to refresh the weather data (in minutes).
+  PreferredProvider: "owm"  # Preferred weather data provider. One of "owm" (OpenWeatherMap) or "open_meteo" (Open Meteo). The app will fall back to Open-Meteo if OWM is selected but no valid API key is provided.
   OWMAPIKey: ""  # OpenWeatherMap API key (optional — falls back to Open-Meteo if blank). Can also be set in the OWM_API_KEY environment variable.
 
 

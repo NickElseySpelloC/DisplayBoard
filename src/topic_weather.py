@@ -5,6 +5,7 @@ import threading
 from typing import TYPE_CHECKING
 
 from sc_utility import WeatherClient
+from weather_client.icon_provider import WeatherIconProvider
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -12,54 +13,44 @@ if TYPE_CHECKING:
     from sc_utility import SCLogger
     from weather_client.models import WeatherReading
 
-# Map sky description strings (from OWM detailed_status and Open-Meteo) to display emoji.
-# Matched case-insensitively against WeatherReading.sky.
-_SKY_ICONS: list[tuple[str, str]] = [
-    # Exact / most-specific first
-    ("thunderstorm", "⛈️"),
-    ("heavy rain", "🌧️"),
-    ("shower rain", "🌧️"),
-    ("rain", "🌧️"),
-    ("drizzle", "🌦️"),
-    ("snow", "❄️"),
-    ("sleet", "🌨️"),
-    ("fog", "🌫️"),
-    ("mist", "🌫️"),
-    ("haze", "🌫️"),
-    ("smoke", "🌫️"),
-    ("sand", "🌫️"),
-    ("dust", "🌫️"),
-    ("overcast", "☁️"),
-    ("broken clouds", "⛅"),
-    ("scattered clouds", "⛅"),
-    ("partly cloudy", "⛅"),
-    ("few clouds", "🌤️"),
-    ("mainly clear", "🌤️"),
-    ("clear", "☀️"),
-]
-
-_COMPASS = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
-            "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
+ICON_LIBRARY = "meteocons"
+ICON_THEME = "fill-animated"
+STATIC_ICON_PREFIX = "/weather_icons"
+type ReadingIconRefs = dict[str, str | None]
 
 
-def _sky_to_icon(sky: str) -> str:
-    sky_lower = sky.lower()
-    for keyword, icon in _SKY_ICONS:
-        if keyword in sky_lower:
-            return icon
-    return "🌡️"
+def build_icon_url(icon_provider: WeatherIconProvider, icon_name: str, *, static_prefix: str = STATIC_ICON_PREFIX) -> str:
+    """Build a URL that a FastAPI/ASGI app could serve as a static SVG asset.
+
+    Returns:
+        A URL path for a packaged weather icon SVG.
+    """
+    icon_relative_path = icon_provider.get_icon_relative_path(icon_name)
+    return f"{static_prefix.rstrip('/')}/{icon_relative_path}"
 
 
-def _deg_to_compass(deg: float | None) -> str:
-    if deg is None:
-        return ""
-    return _COMPASS[round(deg / 22.5) % 16]
+def build_reading_icon_refs(icon_provider: WeatherIconProvider, reading: WeatherReading) -> ReadingIconRefs:
+    """Create ASGI-friendly image references for a weather reading.
+
+    Returns:
+        A mapping of semantic icon roles to static URL paths.
+    """
+    return {
+        "generic_icon": build_icon_url(icon_provider, "clear-day"),
+        "condition_icon": build_icon_url(icon_provider, reading.sky.icon_info.icon_name),
+        "sunrise_icon": build_icon_url(icon_provider, reading.astral_info.sunrise_icon_name),
+        "sunset_icon": build_icon_url(icon_provider, reading.astral_info.sunset_icon_name),
+        # "precipitation_icon": build_icon_url(icon_provider, reading.precipitation_icon_name),
+        "precipitation_icon": build_icon_url(icon_provider, "raindrop-measure"),    # Override
+        "wind_icon": build_icon_url(icon_provider, reading.wind_icon_name),
+    }
 
 
-def _reading_to_dict(reading: WeatherReading, include_wind: bool = True) -> dict:
+def _reading_to_dict(icon_provider: WeatherIconProvider, reading: WeatherReading, include_wind: bool = True) -> dict:
     """Convert a WeatherReading to a dict for display.
 
     Args:
+        icon_provider: The WeatherIconProvider to use for icon URLs.
         reading: The WeatherReading to convert.
         include_wind: Whether to include wind speed and direction in the output.
 
@@ -73,18 +64,18 @@ def _reading_to_dict(reading: WeatherReading, include_wind: bool = True) -> dict
         "temp_feels_like_c": round(reading.temperature.feels_like, 1) if reading.temperature.feels_like is not None else None,
         "sky_title": reading.sky.title,
         "sky_description": reading.sky.description,
-        "icon": _sky_to_icon(reading.sky.description),
-        "png_icon": reading.sky.icon_png_url,
+        "icon": reading.sky.icon_info.unicode_char,
         "precip_probability": round(reading.precip_probability * 100) if reading.precip_probability is not None else 0,
         "time": reading.local_time.strftime("%I %p").lstrip("0"),
         "day": reading.local_time.strftime("%a"),
-        "sunrise_time": reading.sunrise.strftime("%I:%M %p").lstrip("0") if reading.sunrise else None,
-        "sunset_time": reading.sunset.strftime("%I:%M %p").lstrip("0") if reading.sunset else None,
+        "sunrise_time": reading.astral_info.sunrise.strftime("%I:%M %p").lstrip("0") if reading.astral_info.sunrise else None,
+        "sunset_time": reading.astral_info.sunset.strftime("%I:%M %p").lstrip("0") if reading.astral_info.sunset else None,
+        "icon_images": build_reading_icon_refs(icon_provider, reading),
     }
     if include_wind:
         result["wind_speed_kmh"] = round(reading.wind.speed, 1)
-        result["wind_dir"] = _deg_to_compass(reading.wind.deg)
-        result["wind_description"] = f"{result['wind_speed_kmh']} km/h {_deg_to_compass(reading.wind.deg)}".strip()
+        result["wind_dir"] = reading.wind.direction if reading.wind.direction is not None else None
+        result["wind_description"] = f"{result['wind_speed_kmh']} km/h {reading.wind.direction}".strip()
     else:
         result["wind_description"] = None
     return result
@@ -113,12 +104,16 @@ class TopicWeather:
         self._hourly: list[dict] = []
         self._daily: list[dict] = []
         self._source: str = ""
+        self._icon_provider = WeatherIconProvider(library=ICON_LIBRARY, theme=ICON_THEME)
+        self._counter = 0  # To Do: For testing: counts how many times data has been fetched
 
     def get_data(self) -> dict:
         with self._lock:
             current = dict(self._current)
             hourly = list(self._hourly)
             daily = list(self._daily)
+            # current["sky_description"] = f"{current['sky_description']}:{self._counter}"    # To Do: Remove
+            # self._counter += 1
         return {
             "weather_current": current,
             "weather_hourly": hourly,
@@ -130,16 +125,16 @@ class TopicWeather:
             try:
                 weather_data = self._client.get_weather(first_choice=self._preferred_provider)  # Issue #6
 
-                current = _reading_to_dict(weather_data.current)
+                current = _reading_to_dict(self._icon_provider, weather_data.current)
                 current["source"] = weather_data.station.source
 
                 hourly = [
-                    _reading_to_dict(h, include_wind=False)
+                    _reading_to_dict(self._icon_provider, h, include_wind=False)
                     for h in weather_data.hourly[:11]
                 ]
 
                 daily = [
-                    _reading_to_dict(h, include_wind=False)
+                    _reading_to_dict(self._icon_provider, h, include_wind=False)
                     for h in weather_data.daily[:6]
                 ]
 

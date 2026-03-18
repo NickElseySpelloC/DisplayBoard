@@ -122,6 +122,8 @@ html, body {
 .weather-icon {
     font-size: 72px;
     font-weight: 200;
+    width: 90px;
+    height: 90px;
     object-fit: contain;
     line-height: 1;
 }
@@ -159,8 +161,8 @@ html, body {
 .weather-extra-icon {
     font-size: 26px;
     line-height: 1;
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     object-fit: contain;
 }
 

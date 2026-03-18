@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import uvicorn
+import weather_client
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -38,6 +39,10 @@ if TYPE_CHECKING:
 def _get_repo_root() -> Path:
     # src/webapp.py -> repo_root
     return Path(__file__).resolve().parent.parent
+
+
+def _get_weather_icons_root() -> Path:
+    return Path(weather_client.__file__).resolve().parent / "weather_icons"
 
 
 def _validate_access_key(config: SCConfigManager, logger: SCLogger, key_from_request: str | None) -> bool:
@@ -260,6 +265,9 @@ def create_asgi_app(controller: AppController, config: SCConfigManager, logger: 
                 response.headers["Pragma"] = "no-cache"
                 response.headers["Expires"] = "0"
             return response
+
+    # Serve packaged weather icons directly from the installed dependency.
+    app.mount("/weather_icons", StaticFiles(directory=str(_get_weather_icons_root())), name="weather_icons")
 
     # Serve static assets at /static
     app.mount("/static", StaticFiles(directory=str(repo_root / "static")), name="static")
