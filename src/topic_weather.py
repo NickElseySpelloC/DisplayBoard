@@ -67,6 +67,8 @@ def _reading_to_dict(icon_provider: WeatherIconProvider, reading: WeatherReading
         "sky_description": reading.sky.description,
         "icon": reading.sky.icon_info.unicode_char,
         "precip_probability": round(reading.precip_probability * 100) if reading.precip_probability is not None else 0,
+        "feels_like": reading.temperature.feels_like if reading.temperature.feels_like is not None else None,
+        "humidity": round(reading.humidity * 100) if reading.humidity is not None else None,
         "time": reading.local_time.strftime("%I %p").lstrip("0"),
         "day": reading.local_time.strftime("%a"),
         "sunrise_time": reading.astral_info.sunrise.strftime("%I:%M %p").lstrip("0") if reading.astral_info.sunrise else None,

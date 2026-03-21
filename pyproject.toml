@@ -1,6 +1,6 @@
 [project]
 name = "displayboard"
-version = "0.2.3"
+version = "0.2.4"
 description = "Display one of more boards on a client browser"
 readme = "README.md"
 requires-python = ">=3.13"

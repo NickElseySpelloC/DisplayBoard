@@ -63,8 +63,19 @@
                     <span class="weather-extra-value" id="weather-sunset-time">--:--</span>
                 </div>
                 <div class="weather-extra-row">
-                    <img src="/static/raindrops.svg" class="weather-extra-icon" id="weather-precip-icon" alt="Precipitation">
+                    <img src="/static/raindrops.svg" class="weather-detail-precip-icon" id="weather-precip-icon" alt="Precipitation">
                     <span class="weather-extra-value" id="weather-precip-value">--%</span>
+                </div>
+            </div>
+            <div class="weather-extra">
+                <div class="weather-extra-row">
+                    <span class="weather-desc" id="weather-feels-like">Feels like --°</span>
+                </div>
+                <div class="weather-extra-row">
+                    <span class="weather-desc">&nbsp;</span>
+                </div>
+                <div class="weather-extra-row">
+                    <span class="weather-desc" id="weather-humidity">Humidity --%</span>
                 </div>
             </div>
         </div>
@@ -212,6 +223,8 @@ BoardClient.onTopic("weather_current", (data) => {
     setText("weather-sunset-time", data.sunset_time);
     setImage("weather-precip-icon", data.icon_images.precipitation_icon, "💧");
     setText("weather-precip-value", `${data.precip_probability}%`);
+    setText("weather-feels-like", data.feels_like !== undefined ? `Feels like ${Math.round(data.feels_like)}°` : null);
+    setText("weather-humidity", data.humidity !== undefined ? `Humidity ${data.humidity}%` : null);
 });
 
 // ── Weather hourly ───────────────────────────────────────────────────────
