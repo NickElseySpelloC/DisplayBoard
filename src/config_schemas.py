@@ -84,7 +84,7 @@ class ConfigSchema:
                     "PreferredProvider": {"type": "string", "required": False, "nullable": True, "allowed": ["owm", "open_meteo"]},
                     "OWMAPIKey": {"type": "string", "required": False, "nullable": True},
                     "IconLibrary": {"type": "string", "required": False, "nullable": True, "allowed": ["meteocons", "weather-icons"]},
-                    "IconTheme": {"type": "string", "required": False, "nullable": True, "allowed": ["default", "fill-static", "fill-animated", "line-static", "line-animated", "monochrome-static"]},
+                    "IconTheme": {"type": "string", "required": False, "nullable": True, "allowed": ["fill-static", "fill-animated", "line-static", "line-animated", "monochrome-black-static", "monochrome-white-static"]},
                     "IconStyle": {"type": "string", "required": False, "nullable": True, "allowed": ["cropped", "uncropped"]},
                 },
             },
