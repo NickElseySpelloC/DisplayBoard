@@ -256,7 +256,7 @@ requires-dist = [
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "pre-commit", specifier = ">=4.5.1" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
-    { name = "sc-utility", specifier = ">=2.6.1" },
+    { name = "sc-utility", specifier = ">=2.6.6" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.41.0" },
 ]
 
@@ -964,7 +964,7 @@ wheels = [
 
 [[package]]
 name = "sc-utility"
-version = "2.6.1"
+version = "2.6.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "astral" },
@@ -981,9 +981,9 @@ dependencies = [
     { name = "tzdata" },
     { name = "validators" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ed/28/06de7beba8b3564e11d1a594642d2339537e6377d6c94a82b3818bcd7b6c/sc_utility-2.6.1.tar.gz", hash = "sha256:2e832096ce9bd46eef59a51b64f3259a1da6788f862d4a8a2e253cf8ab6964a0", size = 420824, upload-time = "2026-03-18T03:57:59.532Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bd/e6/8071d25fe8d29b6dad597bcaf800700d5943a23e72c486f68732bc45c3c8/sc_utility-2.6.6.tar.gz", hash = "sha256:45b2653c89e1aafbac2666e4e137b0382e3dfeee69dc980bf252d048f1b9b167", size = 777515, upload-time = "2026-03-21T02:58:01.261Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2c/24/09f3c27edec2d47ca8cbe102962d932b40f076099116ebbea1d3a7ef5de5/sc_utility-2.6.1-py3-none-any.whl", hash = "sha256:e3a40fbaa789def75ff99eb4bef39ed0aa6500063f82ec1ef774bfc25d2d00dc", size = 1491276, upload-time = "2026-03-18T03:57:57.891Z" },
+    { url = "https://files.pythonhosted.org/packages/7e/dc/d20e2bb44e6cb153995a9c6ff0dce43252a904643103271c30e0a4b3ee74/sc_utility-2.6.6-py3-none-any.whl", hash = "sha256:fda556157c5b3296fec2a29b197cc3334d6bf9fe380db55a80f6bc4b2999a68f", size = 2977087, upload-time = "2026-03-21T02:57:59.138Z" },
 ]
 
 [[package]]

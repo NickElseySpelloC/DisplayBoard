@@ -76,6 +76,9 @@ class DataManager:
             owm_key = os.environ.get("OWM_API_KEY") or config.get("TopicWeather", "OWMAPIKey", default=None) or None
             refresh_min_raw = config.get("TopicWeather", "RefreshIntervalMin", default=10) or 10
             refresh_min = int(refresh_min_raw) if not isinstance(refresh_min_raw, dict) else 10
+            icon_library = config.get("TopicWeather", "IconLibrary")
+            icon_theme = config.get("TopicWeather", "IconTheme")
+            icon_style = config.get("TopicWeather", "IconStyle")
             self._modules["weather"] = TopicWeather(
                 latitude=float(lat) if not isinstance(lat, dict) else 0.0,
                 longitude=float(lon) if not isinstance(lon, dict) else 0.0,
@@ -84,6 +87,9 @@ class DataManager:
                 refresh_interval_min=refresh_min,
                 on_update=notify_normal,
                 logger=self._logger,
+                icon_library=icon_library,  # pyright: ignore[reportArgumentType]
+                icon_theme=icon_theme,  # pyright: ignore[reportArgumentType]
+                icon_style=icon_style,  # pyright: ignore[reportArgumentType]
             )
             self._logger.log_message(
                 f"Weather topic enabled ({lat}, {lon})", "detailed"

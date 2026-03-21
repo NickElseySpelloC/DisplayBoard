@@ -83,6 +83,9 @@ class ConfigSchema:
                     "RefreshIntervalMin": {"type": "number", "required": False, "nullable": True, "min": 1, "max": 1440},
                     "PreferredProvider": {"type": "string", "required": False, "nullable": True, "allowed": ["owm", "open_meteo"]},
                     "OWMAPIKey": {"type": "string", "required": False, "nullable": True},
+                    "IconLibrary": {"type": "string", "required": False, "nullable": True, "allowed": ["meteocons", "weather-icons"]},
+                    "IconTheme": {"type": "string", "required": False, "nullable": True, "allowed": ["default", "fill-static", "fill-animated", "line-static", "line-animated", "monochrome-static"]},
+                    "IconStyle": {"type": "string", "required": False, "nullable": True, "allowed": ["cropped", "uncropped"]},
                 },
             },
 

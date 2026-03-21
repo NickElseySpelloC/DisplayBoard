@@ -39,9 +39,8 @@
 
     <!-- ── Current Weather ───────────────────────────────────────────── -->
     <div class="topic topic-weather-current">
-        <div class="topic-label">Current Weather</div>
         <div class="weather-content">
-            <div class="weather-icon" id="weather-icon">🌤</div>
+            <img src="/static/clear-day.svg" class="weather-icon" id="weather-icon" alt="Condition">
             <div class="weather-detail">
                 <div class="weather-temp" id="weather-temp">--°</div>
                 <div class="weather-desc" id="weather-desc">Loading…</div>
@@ -49,20 +48,21 @@
             </div>
             <div class="weather-extra">
                 <div class="weather-extra-row">
-                    <img src="/static/sunrise.png" class="weather-extra-icon" alt="Sunrise">
-                    <span class="weather-extra-value" id="weather-sunrise">--:--</span>
+                    <img src="/static/sunrise.svg" class="weather-extra-icon" id="weather-sunrise-icon" alt="Sunrise">
+                    <span class="weather-extra-value" id="weather-sunrise-time">--:--</span>
                 </div>
                 <div class="weather-extra-row">
-                    <img src="/static/sunset.png" class="weather-extra-icon" alt="Sunset">
-                    <span class="weather-extra-value" id="weather-sunset">--:--</span>
+                    <img src="/static/sunset.svg" class="weather-extra-icon" id="weather-sunset-icon" alt="Sunset">
+                    <span class="weather-extra-value" id="weather-sunset-time">--:--</span>
                 </div>
                 <div class="weather-extra-row">
-                    <div class="weather-extra-icon" id="weather-extra-icon">💧</div>
-                    <span class="weather-extra-value" id="weather-precip">--%</span>
+                    <img src="/static/raindrops.svg" class="weather-extra-icon" id="weather-precip-icon" alt="Precipitation">
+                    <span class="weather-extra-value" id="weather-precip-value">--%</span>
                 </div>
             </div>
         </div>
     </div>
+
 
     <!-- ── Board Pagination ───────────────────────────────────────────── -->
     <div class="topic topic-pagination" data-board-count="{{ board_count | default(2) }}">
@@ -106,12 +106,16 @@ BoardClient.onTopic("datetime", (data) => {
 BoardClient.onTopic("weather_current", (data) => {
     setText("weather-temp", data.temp_c !== undefined ? `${Math.round(data.temp_c)}°` : null);
     setText("weather-desc", data.sky_description || data.sky_title);
-    setText("weather-icon", data.icon || "🌤️");
+    setImage("weather-icon", data.icon_images.condition_icon, "☀️");
     setText("weather-wind", data.wind_description);
-    setText("weather-sunrise", data.sunrise_time);
-    setText("weather-sunset", data.sunset_time);
-    setText("weather-precip", `${data.precip_probability}%`);
+    setImage("weather-sunrise-icon", data.icon_images.sunrise_icon, "🌅");
+    setText("weather-sunrise-time", data.sunrise_time);
+    setImage("weather-sunset-icon", data.icon_images.sunset_icon, "🌇");
+    setText("weather-sunset-time", data.sunset_time);
+    setImage("weather-precip-icon", data.icon_images.precipitation_icon, "💧");
+    setText("weather-precip-value", `${data.precip_probability}%`);
 });
+
 
 // ── Calendar ─────────────────────────────────────────────────────────
 BoardClient.onTopic("calendar", (days) => {

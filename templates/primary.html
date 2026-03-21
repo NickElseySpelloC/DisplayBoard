@@ -46,9 +46,8 @@
 
     <!-- ── Current Weather ───────────────────────────────────────────── -->
     <div class="topic topic-weather-current">
-        <div class="topic-label">Current Weather</div>
         <div class="weather-content">
-            <img src="/static/condition_icon.svg" class="weather-icon" id="weather-icon" alt="Condition">
+            <img src="/static/clear-day.svg" class="weather-icon" id="weather-icon" alt="Condition">
             <div class="weather-detail">
                 <div class="weather-temp" id="weather-temp">--°</div>
                 <div class="weather-desc" id="weather-desc">Loading…</div>
@@ -56,15 +55,15 @@
             </div>
             <div class="weather-extra">
                 <div class="weather-extra-row">
-                    <img src="/static/sunrise.png" class="weather-extra-icon" id="weather-sunrise-icon" alt="Sunrise">
+                    <img src="/static/sunrise.svg" class="weather-extra-icon" id="weather-sunrise-icon" alt="Sunrise">
                     <span class="weather-extra-value" id="weather-sunrise-time">--:--</span>
                 </div>
                 <div class="weather-extra-row">
-                    <img src="/static/sunset.png" class="weather-extra-icon" id="weather-sunset-icon" alt="Sunset">
+                    <img src="/static/sunset.svg" class="weather-extra-icon" id="weather-sunset-icon" alt="Sunset">
                     <span class="weather-extra-value" id="weather-sunset-time">--:--</span>
                 </div>
                 <div class="weather-extra-row">
-                    <img src="/static/precipitation_icon.png" class="weather-extra-icon" id="weather-precip-icon" alt="Precipitation">
+                    <img src="/static/raindrops.svg" class="weather-extra-icon" id="weather-precip-icon" alt="Precipitation">
                     <span class="weather-extra-value" id="weather-precip-value">--%</span>
                 </div>
             </div>
@@ -94,7 +93,7 @@
             <!-- Populated by JS -->
             <div class="weather-detail-slot">
                 <div class="weather-detail-time">--:--</div>
-                <div class="weather-detail-icon">🌤</div>
+                <img src="/static/clear-day.svg" class="weather-detail-icon" alt="Condition">
                 <div class="weather-detail-temp">--°</div>
             </div>
         </div>
@@ -108,10 +107,13 @@
             <div class="weather-detail-slot">
                 <div class="weather-detail-day-row">
                     <div class="weather-detail-day">--</div>
-                    <div class="weather-detail-icon">🌤</div>
+                    <img src="/static/clear-day.svg" class="weather-detail-icon" alt="Condition">
                 </div>
                 <div class="weather-detail-temp">--°&nbsp;--°</div>
-                <div class="weather-detail-precip">💧 --%</div>
+                <div class="weather-detail-day-row">
+                    <img src="/static/raindrops.svg" class="weather-detail-precip-icon" alt="Precipitation">
+                    <div class="weather-detail-precip">--%</div>
+                </div>
             </div>
         </div>
     </div>
@@ -219,7 +221,7 @@ BoardClient.onTopic("weather_hourly", (slots) => {
     container.innerHTML = slots.slice(0, 9).map(h => `
         <div class="weather-detail-slot">
             <div class="weather-detail-time">${h.time || "--"}</div>
-            <div class="weather-detail-icon">${h.icon || "🌤"}</div>
+            <img src="${h.icon_images.condition_icon}" class="weather-detail-icon" alt="Condition">
             <div class="weather-detail-temp">${h.temp_c !== undefined ? Math.round(h.temp_c) + "°" : "--"}</div>
         </div>
     `).join("");
@@ -233,13 +235,21 @@ BoardClient.onTopic("weather_daily", (slots) => {
         <div class="weather-detail-slot">
             <div class="weather-detail-day-row">
                 <div class="weather-detail-day">${h.day || "--"}</div>
-                <div class="weather-detail-icon">${h.icon || "🌤"}</div>
+                <img src="${h.icon_images.condition_icon}" class="weather-detail-icon" alt="Condition">
             </div>
             <div class="weather-detail-temp">
                 ${h.temp_high_c !== undefined ? Math.round(h.temp_high_c) + "°" : "--"}&nbsp;${h.temp_low_c !== undefined ? Math.round(h.temp_low_c) + "°" : "--"}
             </div>
-            <div class="weather-detail-precip">
-                💧 ${h.precip_probability !== undefined ? h.precip_probability + "%" : "--%"}
+            <div class="weather-detail-day-row">
+                ${h.precip_probability > 0 ? `
+                    <img src="${h.icon_images.precipitation_icon}" class="weather-detail-precip-icon" alt="Precipitation">
+                    <div class="weather-detail-precip">${h.precip_probability}%</div>
+                ` : 
+                `
+                    <img src="/static/blank.svg" class="weather-detail-precip-icon" alt="Precipitation">
+                    <div class="weather-detail-precip">&nbsp;</div>
+                `
+                }
             </div>
         </div>
     `).join("");

@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 
 ICON_LIBRARY = "meteocons"
 ICON_THEME = "fill-animated"
+ICON_STYLE = "cropped"
 STATIC_ICON_PREFIX = "/weather_icons"
 type ReadingIconRefs = dict[str, str | None]
 
@@ -35,13 +36,13 @@ def build_reading_icon_refs(icon_provider: WeatherIconProvider, reading: Weather
     Returns:
         A mapping of semantic icon roles to static URL paths.
     """
+    generic_file_name = "wi-thermometer" if icon_provider.library == "weather-icons" else "thermometer"
     return {
-        "generic_icon": build_icon_url(icon_provider, "clear-day"),
+        "generic_icon": build_icon_url(icon_provider, generic_file_name),
         "condition_icon": build_icon_url(icon_provider, reading.sky.icon_info.icon_name),
         "sunrise_icon": build_icon_url(icon_provider, reading.astral_info.sunrise_icon_name),
         "sunset_icon": build_icon_url(icon_provider, reading.astral_info.sunset_icon_name),
-        # "precipitation_icon": build_icon_url(icon_provider, reading.precipitation_icon_name),
-        "precipitation_icon": build_icon_url(icon_provider, "raindrop-measure"),    # Override
+        "precipitation_icon": build_icon_url(icon_provider, reading.precipitation_icon_name),
         "wind_icon": build_icon_url(icon_provider, reading.wind_icon_name),
     }
 
@@ -93,8 +94,11 @@ class TopicWeather:
         refresh_interval_min: int = 10,
         owm_api_key: str | None = None,
         preferred_provider: str = "owm",
+        icon_library: str = ICON_LIBRARY,
+        icon_theme: str | None = None,
+        icon_style: str | None = None,
     ) -> None:
-        self._client = WeatherClient(latitude, longitude, owm_api_key or None)
+        self._client = WeatherClient(latitude, longitude, owm_api_key or None, icon_library=icon_library, icon_theme=icon_theme)
         self._on_update = on_update
         self._logger = logger
         self._refresh_secs = max(60, int(refresh_interval_min) * 60)
@@ -104,16 +108,13 @@ class TopicWeather:
         self._hourly: list[dict] = []
         self._daily: list[dict] = []
         self._source: str = ""
-        self._icon_provider = WeatherIconProvider(library=ICON_LIBRARY, theme=ICON_THEME)
-        self._counter = 0  # To Do: For testing: counts how many times data has been fetched
+        self._icon_provider = WeatherIconProvider(library=icon_library, theme=icon_theme, is_cropped=icon_style == "cropped")
 
     def get_data(self) -> dict:
         with self._lock:
             current = dict(self._current)
             hourly = list(self._hourly)
             daily = list(self._daily)
-            # current["sky_description"] = f"{current['sky_description']}:{self._counter}"    # To Do: Remove
-            # self._counter += 1
         return {
             "weather_current": current,
             "weather_hourly": hourly,

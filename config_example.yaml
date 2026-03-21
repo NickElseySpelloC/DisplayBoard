@@ -63,6 +63,9 @@ TopicWeather:
   RefreshIntervalMin: 15  # How often to refresh the weather data (in minutes).
   PreferredProvider: "owm"  # Preferred weather data provider. One of "owm" (OpenWeatherMap) or "open_meteo" (Open Meteo). The app will fall back to Open-Meteo if OWM is selected but no valid API key is provided.
   OWMAPIKey: ""  # OpenWeatherMap API key (optional — falls back to Open-Meteo if blank). Can also be set in the OWM_API_KEY environment variable.
+  IconLibrary: "meteocons"  # Icon library to use for weather icons. One of "meteocons" or "weather-icons". The default is "meteocons".
+  IconTheme: "fill-animated"  # Icon theme to use for weather icons. See https://nickelseyspelloc.github.io/sc_utility/reference/icon_provider for details. The default is "fill-animated".
+  IconStyle: "cropped"  # Whether to use cropped or uncropped icons. One of "cropped" or "uncropped". The default is "cropped".
 
 
 # Configure the base URL and port to query a PowerController DataAPI service. This app will automatically add the relevant endpoints to the base URL (e.g. http://localhost:8081/outputs)

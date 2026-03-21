@@ -17,6 +17,15 @@ const BoardClient = (() => {
     let _socket = null;
     let _handlers = {};
     let _statusEl = null;
+    let _lastTopicState = {};
+
+    function _serialize(value) {
+        try {
+            return JSON.stringify(value);
+        } catch {
+            return undefined;
+        }
+    }
 
     // ── Public API ──────────────────────────────────────────────────────
 
@@ -77,14 +86,23 @@ const BoardClient = (() => {
         // Call each registered handler with its slice of the state.
         // Always pass "global" data to every handler as second arg.
         const global = state.global || {};
+        const globalSerialized = _serialize(global);
         for (const [topic, handler] of Object.entries(_handlers)) {
             if (state[topic] !== undefined) {
+                const serialized = _serialize(state[topic]);
+                if (_lastTopicState[topic] === serialized) {
+                    continue;
+                }
+                _lastTopicState[topic] = serialized;
                 try { handler(state[topic], global); } catch (e) { console.error(`Handler error [${topic}]:`, e); }
             }
         }
         // Also call a special "global" handler if registered.
         if (_handlers.global) {
-            try { _handlers.global(global); } catch (e) { console.error("Handler error [global]:", e); }
+            if (_lastTopicState.global !== globalSerialized) {
+                _lastTopicState.global = globalSerialized;
+                try { _handlers.global(global); } catch (e) { console.error("Handler error [global]:", e); }
+            }
         }
     }
 
@@ -123,8 +141,13 @@ function setImage(id, url, alt = "") {
     const el = document.getElementById(id);
     if (!el) return;
     if (url && url !== null && url !== undefined) {
-        el.src = url;
-        if (alt) el.alt = alt;
+        const resolvedUrl = new URL(url, location.href).href;
+        if (el.src !== resolvedUrl) {
+            el.src = url;
+        }
+        if (alt && el.alt !== alt) {
+            el.alt = alt;
+        }
     }
 }
 
