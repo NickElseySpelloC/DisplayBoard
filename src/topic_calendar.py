@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import datetime as dt
 import html
+import operator
 import threading
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -22,7 +23,14 @@ _ALLDAY_DISPLAY = "All day"
 
 
 def _esc(value: str) -> str:
-    """HTML-escape a string for safe injection into innerHTML via JS template literals."""
+    """HTML-escape a string for safe injection into innerHTML via JS template literals.
+
+    Args:
+        value (str): The string to escape.
+
+    Returns:
+        str: The escaped string, or an empty string if the input is falsy.
+    """
     return html.escape(str(value)) if value else ""
 
 
@@ -74,22 +82,43 @@ class TopicCalendar:
     # ── Private ──────────────────────────────────────────────────────────
 
     def _fetch_all(self) -> list[dict]:
-        """Fetch and merge events from all configured accounts."""
+        """Fetch and merge events from all configured accounts.
+
+        Returns:
+            list[dict]: A list of merged events from all accounts.
+        """
         all_events: list[dict] = []
         for account in self._accounts:
             account_name = account.get("Name", "unknown")
             try:
                 all_events.extend(self._fetch_account(account))
-            except Exception as e:  # noqa: BLE001
+            except RuntimeError as e:
+                # Credential/config issue — treat as a warning
+                msg = str(e)
                 self._logger.log_message(
-                    f"Calendar fetch error for account '{account_name}': {e}", "warning"
+                    f"Calendar warning for account '{account_name}': {msg}", "warning"
                 )
+                all_events.append(_make_error_event(account_name, msg, is_error=False))
+            except Exception as e:  # noqa: BLE001
+                # Unexpected error
+                msg = str(e)
+                self._logger.log_message(
+                    f"Calendar fetch error for account '{account_name}': {msg}", "warning"
+                )
+                all_events.append(_make_error_event(account_name, msg, is_error=True))
         # Sort chronologically: by date then by time-of-day
-        all_events.sort(key=lambda e: (e["_date"], e["_sort_key"]))
+        all_events.sort(key=operator.itemgetter("_date", "_sort_key"))
         return _build_day_slots(all_events)
 
-    def _fetch_account(self, account: dict) -> list[dict]:
-        """Fetch events for a single Google account and return a flat event list."""
+    def _fetch_account(self, account: dict) -> list[dict]:  # noqa: PLR0914
+        """Fetch events for a single Google account and return a flat event list.
+
+        Args:
+            account (dict): The account configuration dict.
+
+        Returns:
+            list[dict]: A list of event dicts for this account.
+        """
         name = account.get("Name", "unknown")
         token_path = self._tokens_dir / f"{name}.json"
         creds = self._load_credentials(token_path)
@@ -136,28 +165,65 @@ class TopicCalendar:
                 )
         return events
 
-    def _load_credentials(self, token_path: Path) -> Credentials:
-        """Load and (if needed) refresh stored OAuth credentials."""
+    def _load_credentials(self, token_path: Path) -> Credentials:  # noqa: PLR6301
+        """Load and (if needed) refresh stored OAuth credentials.
+
+        Args:
+            token_path (Path): The path to the stored credentials JSON file.
+
+        Returns:
+            Credentials: The loaded and refreshed OAuth credentials.
+
+        Raises:
+            RuntimeError: If credentials are missing or invalid.
+        """
         creds: Credentials | None = None
         if token_path.exists():
             creds = Credentials.from_authorized_user_file(str(token_path), _SCOPES)
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
-            token_path.write_text(creds.to_json())
+            token_path.write_text(creds.to_json(), encoding="utf-8")
         if not creds or not creds.valid:
-            raise RuntimeError(
-                f"No valid credentials at '{token_path}'. "
-                f"Run: python src/setup_calendar_auth.py --account <name>"
-            )
+            error_msg = f"No valid credentials at '{token_path}'. "
+            error_msg += "Run: python src/setup_calendar_auth.py --account <name>"
+            raise RuntimeError(error_msg)
         return creds
 
 
 # ── Module-level helpers ──────────────────────────────────────────────────────
 
+def _make_error_event(account_name: str, message: str, *, is_error: bool) -> dict:
+    """Build a synthetic event dict for a per-account fetch failure.
+
+    Args:
+        account_name (str): The name of the account with the issue.
+        message (str): The error/warning message to display.
+        is_error (bool): Whether this is an error (True) or a warning (False).
+
+    Returns:
+        dict: A synthetic event dictionary representing the error or warning.
+    """
+    now = dt.datetime.now().astimezone()
+    icon = "⛔" if is_error else "⚠️"
+    return {
+        "_date": now.date().isoformat(),
+        "_sort_key": now.strftime("%H:%M"),
+        "time": now.strftime("%I:%M %p").lstrip("0"),
+        "title": _esc(f"{icon} {account_name} unavailable"),
+        "location": _esc(message),
+        "color": "#f44336" if is_error else "#ff9800",
+    }
+
+
 def _parse_event(item: dict, color: str) -> dict | None:
     """Convert a Google Calendar API event item into a display dict.
 
-    Returns None if the event cannot be parsed.
+    Args:
+        item (dict): The raw event item from the Google Calendar API.
+        color (str): The display color associated with this event's calendar.
+
+    Returns:
+        dict | None: A display dictionary representing the event, or None if the event cannot be parsed.
     """
     start = item.get("start", {})
 
@@ -191,7 +257,14 @@ def _parse_event(item: dict, color: str) -> dict | None:
 
 
 def _build_day_slots(events: list[dict]) -> list[dict]:
-    """Group a sorted flat event list into per-day display dicts, skipping empty days."""
+    """Group a sorted flat event list into per-day display dicts, skipping empty days.
+
+    Args:
+        events (list[dict]): A list of event dictionaries.
+
+    Returns:
+        list[dict]: A list of per-day display dictionaries.
+    """
     days: dict[str, dict] = {}
     for event in events:
         date_key = event["_date"]

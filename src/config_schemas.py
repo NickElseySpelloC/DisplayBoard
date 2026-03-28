@@ -99,6 +99,16 @@ class ConfigSchema:
                 },
             },
 
+            "TopicWANFailoverCheck": {
+                "type": "dict",
+                "required": False,
+                "schema": {
+                    "RefreshIntervalSec": {"type": "number", "required": False, "nullable": True, "min": 1, "max": 1440},
+                    "APIBaseURL": {"type": "string", "required": True},
+                },
+            },
+
+
             "TopicCalendar": {
                 "type": "dict",
                 "required": False,

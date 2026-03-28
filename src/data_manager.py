@@ -9,6 +9,7 @@ from topic_background import TopicBackground
 from topic_calendar import TopicCalendar
 from topic_datetime import TopicDateTime
 from topic_powercontroller import TopicPowerController
+from topic_wanfailover import TopicWANFailoverCheck
 from topic_weather import TopicWeather
 
 if TYPE_CHECKING:
@@ -59,7 +60,7 @@ class DataManager:
 
     # ── Private ──────────────────────────────────────────────────────────
 
-    def _init_modules(  # noqa: PLR0914
+    def _init_modules(  # noqa: PLR0914, PLR0915
         self,
         config: SCConfigManager,
         notify_force: Callable[[], None],
@@ -144,6 +145,23 @@ class DataManager:
             )
         else:
             self._logger.log_message("Background images disabled: no libraries configured.", "summary")
+
+        # WANFailoverCheck — active when APIBaseURL is configured
+        wan_url = config.get("TopicWANFailoverCheck", "APIBaseURL", default=None)
+        if wan_url:
+            wan_refresh_raw = config.get("TopicWANFailoverCheck", "RefreshIntervalSec", default=10) or 10
+            wan_refresh = int(wan_refresh_raw) if not isinstance(wan_refresh_raw, dict) else 10
+            self._modules["wan_failover"] = TopicWANFailoverCheck(
+                base_url=str(wan_url),
+                refresh_interval_sec=wan_refresh,
+                on_update=notify_normal,
+                logger=self._logger,
+            )
+            self._logger.log_message(f"WANFailoverCheck topic enabled ({wan_url})", "detailed")
+        else:
+            self._logger.log_message(
+                "WANFailoverCheck topic disabled: APIBaseURL not configured.", "summary"
+            )
 
         # Calendar — active when Accounts are configured
         cal_accounts_raw = config.get("TopicCalendar", "Accounts", default=None) or []

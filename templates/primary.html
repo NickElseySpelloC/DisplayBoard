@@ -95,6 +95,13 @@
         <div class="topic-label">&nbsp;</div>
         <div class="topic-label">Temperature Probes</div>
         <div id="home-probes"></div>
+        <div class="topic-label">Internet Status</div>
+        <div id="home-wan-check">
+            <div class="home-row">
+                <span class="home-label" id="wan-status">Status</span>
+                <span class="home-value" id="wan-on-primary">All Good!</span>
+            </div>
+        </div>
     </div>
 
     <!-- ── Hourly Forecast ────────────────────────────────────────────── -->
@@ -210,6 +217,13 @@ BoardClient.onTopic("powercontroller", (data) => {
     }
 
 });
+
+// ── WANFailoverCheck ──────────────────────────────────────────────────────
+BoardClient.onTopic("wan_failover", (data) => {
+    setText("wan-status", data.status);
+    setText("wan-on-primary", data.on_primary ? "✅" : "⚠️");
+});
+
 
 // ── Weather current ──────────────────────────────────────────────────────
 BoardClient.onTopic("weather_current", (data) => {

@@ -75,6 +75,12 @@ TopicPowerController:
   AccessKey:        # Access key for the power controller API if needed. Can also be set in the PC_DATAAPI_ACCESS_KEY environment variable.
 
 
+# WAN failover status check. Queries a REST API that returns WAN status (primary vs backup connection).
+TopicWANFailoverCheck:
+  RefreshIntervalSec: 10          # How often to poll the WAN status API (in seconds).
+  APIBaseURL: "http://192.168.1.1:8087"  # Base URL of the WAN failover status API (e.g. http://192.168.86.36:8087).
+
+
 # Google Calendar integration.
 # Before starting the app, run the one-time auth helper for each account:
 #   python src/setup_calendar_auth.py --account <Name>
