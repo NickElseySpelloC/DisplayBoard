@@ -222,6 +222,8 @@ BoardClient.onTopic("powercontroller", (data) => {
 BoardClient.onTopic("wan_failover", (data) => {
     setText("wan-status", data.status);
     setText("wan-on-primary", data.on_primary ? "✅" : "⚠️");
+    const el = document.getElementById("wan-on-primary");
+    if (el) el.className = data.on_primary ? "home-value" : "home-value-blink";
 });
 
 

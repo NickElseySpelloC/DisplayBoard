@@ -269,6 +269,18 @@ html, body {
     font-size: 20px;
 }
 
+.home-value-blink {
+    font-weight: 500;
+    font-size: 32px;
+    animation: blink 1s step-start infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
 .status-on  { 
     font-weight: 500;
     color: #4ade80; 
