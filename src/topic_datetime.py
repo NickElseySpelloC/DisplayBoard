@@ -4,7 +4,7 @@ from __future__ import annotations
 import threading
 from typing import TYPE_CHECKING
 
-from sc_utility import DateHelper
+from sc_foundation import DateHelper
 
 if TYPE_CHECKING:
     from collections.abc import Callable

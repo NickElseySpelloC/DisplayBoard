@@ -16,7 +16,7 @@ from googleapiclient.errors import HttpError
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from sc_utility import SCLogger
+    from sc_foundation import SCLogger
 
 _SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
 _ALLDAY_DISPLAY = "All day"

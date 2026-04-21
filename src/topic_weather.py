@@ -4,14 +4,14 @@ from __future__ import annotations
 import threading
 from typing import TYPE_CHECKING
 
-from sc_utility import WeatherClient
-from weather_client.icon_provider import WeatherIconProvider
+from sc_weather import WeatherClient
+from sc_weather.icon_provider import WeatherIconProvider
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from sc_utility import SCLogger
-    from weather_client.models import WeatherReading
+    from sc_foundation import SCLogger
+    from sc_weather.models import WeatherReading
 
 ICON_LIBRARY = "meteocons"
 ICON_THEME = "fill-animated"

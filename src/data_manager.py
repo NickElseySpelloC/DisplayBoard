@@ -15,7 +15,7 @@ from topic_weather import TopicWeather
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from sc_utility import SCConfigManager, SCLogger
+    from sc_foundation import SCConfigManager, SCLogger
 
 
 class DataManager:

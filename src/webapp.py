@@ -18,8 +18,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+import sc_weather
 import uvicorn
-import weather_client
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
     from threading import Event
 
-    from sc_utility import SCConfigManager, SCLogger
+    from sc_foundation import SCConfigManager, SCLogger
 
     from controller import AppController
 
@@ -42,7 +42,7 @@ def _get_repo_root() -> Path:
 
 
 def _get_weather_icons_root() -> Path:
-    return Path(weather_client.__file__).resolve().parent / "weather_icons"
+    return Path(sc_weather.__file__).resolve().parent / "weather_icons"
 
 
 def _validate_access_key(config: SCConfigManager, logger: SCLogger, key_from_request: str | None) -> bool:

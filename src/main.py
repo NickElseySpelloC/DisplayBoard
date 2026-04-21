@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from threading import Event
 
-from sc_utility import SCCommon, SCConfigManager, SCLogger
+from sc_foundation import SCCommon, SCConfigManager, SCLogger
 
 from config_schemas import ConfigSchema
 from controller import AppController

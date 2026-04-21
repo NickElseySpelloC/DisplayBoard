@@ -11,7 +11,7 @@ import requests
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from sc_utility import SCLogger
+    from sc_foundation import SCLogger
 
 
 class TopicBackground:

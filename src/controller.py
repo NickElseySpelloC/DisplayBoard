@@ -6,7 +6,7 @@ from collections.abc import Callable
 from threading import Event, RLock
 from typing import TYPE_CHECKING
 
-from sc_utility import (
+from sc_foundation import (
     DateHelper,
     SCConfigManager,
     SCLogger,

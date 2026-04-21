@@ -6,12 +6,12 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 import requests
-from sc_utility import DateHelper
+from sc_foundation import DateHelper
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from sc_utility import SCLogger
+    from sc_foundation import SCLogger
 
 # Map Amber/PC energy price status values to normalised display classes.
 # PC DataAPI passes through Amber status strings.
