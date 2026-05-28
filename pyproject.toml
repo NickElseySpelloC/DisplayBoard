@@ -30,6 +30,7 @@ remote="~/Library/CloudStorage/Dropbox/Development/dev_setup/app_config/DisplayB
 patterns = [
     ".env",
     "config.yaml",
+    ".vscode/*",
     "logs/*",
     "google_credentials.json",
     "tokens/*",
