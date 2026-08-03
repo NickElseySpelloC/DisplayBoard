@@ -1,0 +1,113 @@
+# General settings for the application.
+General:
+  Label: Sydney   # General label for the application. This is used for display purposes and in log messages.
+  PollingIntervalSec: 10  # Polling interval for the main controller loop (in seconds). 
+  # Some critical errors can trigger email notifications - for example the AmberAPI not responding. This is the time in minutes for an issue to persist before we send an email notification. Leave blank to disable.
+  ReportCriticalErrorsDelay: 10
+
+
+# General settings for the application's web interface. 
+Website:
+  HostingIP: 0.0.0.0    # The IP address that the web server is listening on. Set to 0.0.0.0 to listen on all interfaces.
+  Port: 8082            # Port to host the web interface on.
+  DebugMode: False      # If True, an exceptions will be reported via the web brower. Set to True for testing, False for a production deployment.
+  AccessKey:            # Access key for the web interface. Set to an empty string to disable access control. Can also be set in the WEBSITE_ACCESS_KEY environment variable.
+
+
+Files:
+  LogfileName: logs/logfile.log   # Log file name. Set to an empty string to disable logging to a file.
+  LogfileVerbosity: debug   # The level of detail captured in the log file. One of: none; error; warning; summary; detailed; debug; all. The default is summary.
+  ConsoleVerbosity: debug   # Controls the amount of information written to the console. One of: error; warning; summary; detailed; debug; all. Errors are written to stderr all other messages are written to stdout. The default is summary.
+  LogfileMaxLines: 5000
+
+# Enter your settings here if you want to be emailed when there's a critical error 
+Email:
+  EnableEmail: True
+  SendEmailsTo: nick@elseyworld.com
+  SMTPServer: smtp.gmail.com
+  SMTPPort: 587
+  SubjectPrefix: "[DisplayBoard]: "
+
+
+# List of DisplayBoards to be displayed on the web interface. 
+DisplayBoards:
+  AutoRotateSec: 0  # How often to rotate the display boards (in seconds). Set to 0 to disable auto-rotation.
+  Boards:
+    - Name: "Primary" # Name of the display board. This is used for display purposes and to reference the board in log messages.
+      Template: "primary.html"  # The HTML template to use for this display board. This defines the layout of the board and the topics to include. The template files should be placed in the /templates folder.
+      BackgroundImageLibrary: "Unsplash Nature and Landscape"  # The name of the background image library to use for this board. This should match one of the libraries defined in the BackgroundImages section.
+    - Name: "Energy Detail"
+      Template: "energy_detail.html"  
+    - Name: "Google Calendar"
+      Template: "calendar.html"  
+
+
+# Define the source for the rotating background images to display on the board(s).
+BackgroundImages: 
+  AutoRotateMin: 15  # How often to rotate the images boards (in minutes). Set to 0 to disable auto-rotation.
+  Libraries:
+    - Name: "Unsplash Nature and Landscape"  # Name of the image library. This is references in the display board config.
+      Type: unsplash  # Library type. One of "unsplash" (for images from the Unsplash API) or "pexels" (for images from the Pexels API).
+      AccessKey:   # Access key for the Unsplash API. Can also be set in the UNSPLASH_ACCESS_KEY environment variable.
+      Query: "nature landscape dark"   # Search query for images (e.g. "ocean sunset", "mountains snow")
+    - Name: "Pexels Nature and Landscape"  # Name of the image library. This is references in the display board config.
+      Type: pexels  # Library type. One of "unsplash" (for images from the Unsplash API) or "pexels" (for images from the Pexels API).
+      AccessKey:   # Access key for the Pexels API. Can also be set in the PEXELS_ACCESS_KEY environment variable.
+      Query: "nature animals"   # Search query for images (e.g. "ocean sunset", "mountains snow")
+
+
+
+# Weather data is retrieved using the sc_utility WeatherClient class.
+# WeatherClient uses Open-Meteo (free, no key needed) with optional OWM fallback.
+TopicWeather:
+  Latitude: -33.7358112    # Location latitude (e.g. Sydney, Australia)
+  Longitude: 151.1071816   # Location longitude
+  RefreshIntervalMin: 15  # How often to refresh the weather data (in minutes).
+  PreferredProvider: "owm"  # Preferred weather data provider. One of "owm" (OpenWeatherMap) or "open_meteo" (Open Meteo). The app will fall back to Open-Meteo if OWM is selected but no valid API key is provided.
+  OWMAPIKey: ""  # OpenWeatherMap API key (optional — falls back to Open-Meteo if blank). Can also be set in the OWM_API_KEY environment variable.
+  IconLibrary: "meteocons"  # Icon library to use for weather icons. One of "meteocons" or "weather-icons". The default is "meteocons".
+  IconTheme: "line-animated"  # Icon theme to use for weather icons. See https://nickelseyspelloc.github.io/sc_utility/reference/icon_provider for details. The default is "fill-animated".
+  IconStyle: "cropped"  # Whether to use cropped or uncropped icons. One of "cropped" or "uncropped". The default is "cropped".
+
+
+# Configure the base URL and port to query a PowerController DataAPI service. This app will automatically add the relevant endpoints to the base URL (e.g. http://localhost:8081/outputs)
+TopicPowerController:
+  RefreshIntervalSec: 10  # How often to refresh the power controller data (in seconds). 
+  DataAPIBaseURL: "http://192.168.86.36:8081"  # The API endpoint to fetch power controller data from. 
+  AccessKey:        # Access key for the power controller API if needed. Can also be set in the PC_DATAAPI_ACCESS_KEY environment variable.
+
+
+# Configure a connection to the WAN Failover Check service which reports the status of our WAN connection
+TopicWANFailoverCheck:
+  RefreshIntervalSec: 10  # How often to refresh the WAN failover check data (in seconds). 
+  APIBaseURL: "http://192.168.86.36:8087/status"  # The API endpoint to fetch WAN failover check data from. This should be the full URL including the endpoint (e.g. http://localhost:8087/status)
+
+
+# Google Calendar event data. 
+TopicCalendar:
+  RefreshIntervalMin: 1  # How often to refresh the calendar data (in minutes). Set to 0 to disable automatic refreshing. The calendar data is still updated when the application starts and when the web page is refreshed.
+  DaysAhead: 7  # How many days ahead to fetch calendar events for.
+  CredentialsFile: "google_credentials.json"  # Path to the Google API credentials file. This file should be obtained from the Google Cloud Console and should have the necessary permissions to access the Google Calendar API. The app will look for this file in the current working directory.
+  TokensDir: "tokens"  # Directory to store Google API tokens. This should be a secure location that is not publicly accessible. The app will create this directory if it does not exist.
+  Accounts:
+    - Name: "Elseyworld"  # Identifying name for the calendar account. This is used to reference this account in the topic_calendar section of the display board templates. This name must not have any spaces.
+      Calendars:    # List of calendar IDs to fetch events from. 
+        - "Home"
+        - "Elsey Family"
+    - Name: "Spello Consulting"
+      Calendars:
+        - "Nick Spello C."
+    - Name: "Grid Ventures"
+      Calendars:
+        - "Nick Grid Ventures"
+        - "GV Operational Calendar"
+
+  
+# Define a list of web pages that can be included as a topic in a display board. Multiple pages are supported and the app will reference then my name
+TopicWebPage:
+  - Name: "Cat Pics"  # Name of the web page topic. This is used to reference this topic in the display board templates.
+    URL: "https://www.google.com/search?q=cat+pictures&tbm=isch"  # The URL of the web page to include as a topic. 
+    RefreshIntervalSec: 10  # How often to refresh the web page (in seconds). Set to 0 to disable auto-refresh.
+  - Name: "News"  
+    URL: "https://www.bbc.com/news"  
+    RefreshIntervalSec: 300

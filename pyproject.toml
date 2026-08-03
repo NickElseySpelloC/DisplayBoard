@@ -1,6 +1,6 @@
 [project]
 name = "displayboard"
-version = "1.0.1"
+version = "1.0.2"
 description = "Display one of more boards on a client browser"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -28,10 +28,6 @@ where = ["src"]
 [dev.env.sync]
 remote="~/Library/CloudStorage/Dropbox/Development/dev_setup/app_config/DisplayBoard"
 patterns = [
-    ".env",
-    "config.yaml",
-    ".vscode/*",
-    "logs/*",
     "google_credentials.json",
     "tokens/*",
 ]
