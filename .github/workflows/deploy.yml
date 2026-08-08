@@ -1,0 +1,31 @@
+name: Deploy DisplayBoard
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - sydneyapp
+
+jobs:
+  deploy:
+    name: Deploy DisplayBoard → ${{ matrix.environment }}
+    runs-on: [self-hosted, "${{ matrix.environment }}"]
+    environment: ${{ matrix.environment }}
+    strategy:
+      matrix:
+        environment: ${{ fromJSON(inputs.environment == 'both' && '["sydneyapp"]' || format('["{0}"]', inputs.environment)) }}
+    steps:
+      - name: Pull latest from GitHub
+        run: sudo git -C /home/nick/scripts/DisplayBoard pull
+
+      - name: Restart service
+        run: sudo systemctl restart DisplayBoard
+
+      - name: Verify service is running
+        run: |
+          sleep 6
+          systemctl is-active DisplayBoard
