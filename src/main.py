@@ -112,6 +112,7 @@ def main():  # noqa: PLR0915
         stop_event.set()
         wake_event.set()
     signal.signal(signal.SIGINT, handle_sigint)
+    signal.signal(signal.SIGTERM, handle_sigint)
 
     # Get our default schema, validation schema, and placeholders.
     schemas = ConfigSchema()
@@ -179,7 +180,7 @@ def main():  # noqa: PLR0915
         tm.add(**spec, kwargs={"stop_event": stop_event})
 
     tm.start_all()
-    # (SIGINT handler already installed; remove later duplicate)
+
     try:
         while not stop_event.is_set():
             if tm.any_crashed():
